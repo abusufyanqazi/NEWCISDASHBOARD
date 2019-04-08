@@ -161,7 +161,112 @@ namespace DAL
 
             return null;
         }
-        
+        //
+        public DataTable GetDefConsListCenterWise(string pCode, DateTime pBillMon, string pRs, string pAge, string pBatch, string pPvtGvt, string pRundisc, string pTrf, string pSrtBy)
+        {
+            OracleConnection con = null;
+            OracleCommand cmd;
+            con = new OracleConnection(_constr);
+            string sortorder = "";
+            string fromRs = pRs;
+            string toRs = pRs;
+            string filter = string.Empty;
+
+            if (pRs.IndexOf("-") > 0)
+            {
+                fromRs = pRs.Split('-')[0];
+                toRs = pRs.Split('-')[1];
+            }
+            
+            filter += " AND AMOUNT BETWEEN " + fromRs   + " AND " + toRs;
+
+            if (!string.Empty.Equals(pTrf) && !pTrf.ToUpper().Equals("ALL"))
+                filter += " AND  TARIFF_CAT LIKE '" + pTrf + "'";
+            
+            if (!string.Empty.Equals(pBatch) && ! pBatch.ToUpper().Equals("ALL"))
+                filter += " AND REFNO LIKE '" + pAge.PadLeft(2,'0') + "%'";
+
+            if (!string.Empty.Equals(pAge))
+                filter += " AND AGE >= " + pAge;
+
+            if (!string.Empty.Equals(pPvtGvt))
+                filter += " AND DEF_TYPE LIKE '" + pPvtGvt + "'";
+            
+            if (!string.Empty.Equals(pRundisc))
+                filter += " AND DEF_STATUS LIKE '" + pRundisc + "'";
+
+            if (con.State != ConnectionState.Open)
+            {
+                con.Open();
+            }
+
+            switch (pCode.Length)
+            {
+                case 2:
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
+                case 3:
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
+                case 4:
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
+                default:
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
+
+
+            }
+
+            string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME, BPERIOD BILLMONTH, count(refno) CONSUMERS, sum(AMOUNT) AMOUNT  " +
+                         "FROM VW_DEFAULTER_LIST " +
+                         " WHERE BPERIOD=(SELECT MAX(BPERIOD) FROM VW_DEFAULTER_LIST WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder +filter + ")";
+            sql += " AND SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder + filter;
+            sql += " GROUP BY SRT_ORDER2, SRT_ORDER1, SDIVCODE, SDIV_NAME, BPERIOD";
+            //sql += " ORDER BY SRT_ORDER1";
+
+            cmd = new OracleCommand(sql, con);
+            cmd.CommandType = CommandType.Text;
+            DataSet ds = new DataSet();
+            OracleDataAdapter ad = new OracleDataAdapter();
+            ad.SelectCommand = cmd;
+            try
+            {
+                ad.Fill(ds);
+
+            }
+            catch (Exception ex)
+            {
+                DataTable dtErr = new DataTable();
+                dtErr.Columns.Add("Desc");
+                DataRow drErr = dtErr.NewRow();
+                drErr["Desc"] = ex.ToString();
+                dtErr.Rows.Add(drErr);
+                return dtErr;
+            }
+            finally
+            {
+                if (con != null && con.State == ConnectionState.Open)
+                {
+                    con.Close();
+                }
+            }
+
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
+
+            return null;
+        }
         //VW_DEF_CONS_SUM_BATCH_WISE
         public DataTable GetDefConsSumBatch(string pCode, DateTime pBillMon)
         {

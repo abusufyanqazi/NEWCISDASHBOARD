@@ -147,7 +147,31 @@ namespace DashBoardAPI.Models
 
             return _DefaulterSummary;
         }
+        public DefaulterBatchSummary GetDefaultListCntrWise(string code, string rs, string age, string batch, string pgvt, string rundc, string trf, string srt)
+        {
+            DefaulterBatchSummary _DefaulterSummary = new DefaulterBatchSummary();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            StringBuilder filterExp = new StringBuilder();
 
+            DataTable dt = objDbuTil.GetDefConsListCenterWise(code, DateTime.Now.AddMonths(-1),rs,age,batch,pgvt,rundc,trf,srt);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                DataView dvHead = dt.DefaultView;
+                filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
+                dvHead.RowFilter = filterExp.ToString();
+                if (dvHead != null && dvHead.ToTable().Rows.Count > 0)
+                {
+                    string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dvHead.ToTable().Rows[0], "BILLMONTH"));
+                    string cd = utility.GetColumnValue(dvHead.ToTable().Rows[0], "CODE");
+                    string name = utility.GetColumnValue(dvHead.ToTable().Rows[0], "NAME");
+                    _DefaulterSummary = new DefaulterBatchSummary(billMonth, cd, name, dt);
+                }
+
+            }
+
+            return _DefaulterSummary;
+        }
         public DefaulterSummary GetDefaulterSummaryAge(string code, string type, string status, string tariff)
         {
             DefaulterSummary _DefaulterSummary = new DefaulterSummary();

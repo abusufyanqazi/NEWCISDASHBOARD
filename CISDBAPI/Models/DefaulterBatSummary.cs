@@ -36,6 +36,11 @@ namespace DashBoardAPI.Models
             {
                 DfltrConsSmry.Add(new DefaulterBSummary(dr));
             }
+            dv = pDT.DefaultView;
+            filterExp = new StringBuilder();
+            filterExp.AppendFormat("LEN(CODE) = {0}", pCode.Length.ToString());
+            dv.RowFilter = filterExp.ToString();
+            DfltrConsSmry.Add(new DefaulterBSummary(dv[0]));
         }
     }
 

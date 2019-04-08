@@ -143,6 +143,7 @@
     <Compile Include="Controllers\CollectBillingController.cs" />
     <Compile Include="Controllers\CollectCompAssMntController.cs" />
     <Compile Include="Controllers\CreditAdjustmentController.cs" />
+    <Compile Include="Controllers\DefaultListCntrWiseController.cs" />
     <Compile Include="Controllers\DefaultListRefController.cs" />
     <Compile Include="Controllers\DefaultSumAgeController.cs" />
     <Compile Include="Controllers\DefaultSumAmntController.cs" />
