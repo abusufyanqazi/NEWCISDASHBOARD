@@ -36,14 +36,14 @@ namespace DashBoardAPI.Models
 
             return _DefaultSumFdrWise;
         }
-        public DefaultListRefWise GetDefListRefWise(string code, string type, string status, string tariff)
+        public DefaultListRefWise GetDefListRefWise(string code, string type, string status, string tariff, string pSlab)
         {
             DefaultListRefWise _DefaulterSummary = new DefaultListRefWise();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
             StringBuilder filterExp = new StringBuilder();
 
-            DataTable dt = objDbuTil.GetDefListRefWise(code,DateTime.Now.AddMonths(-1),type,status,tariff);
+            DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), type, status, tariff, pSlab);
             if (dt != null && dt.Rows.Count > 0)
             {
                     string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
@@ -56,18 +56,18 @@ namespace DashBoardAPI.Models
 
             return _DefaulterSummary;
         }
-        public DefaulterBatchSummary GetDefaulterSummaryCntrWise(string code)
+        public DefaulterBatchSummary GetDefaulterSummaryCntrWise(string pCode, string pAge, string pPvtGvt, string pRundisc, string pTrf)
         {
             DefaulterBatchSummary _DefaulterSummary = new DefaulterBatchSummary();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
             StringBuilder filterExp = new StringBuilder();
 
-            DataTable dt = objDbuTil.GetDefConsSumBatch(code, DateTime.Now.AddMonths(-1));
+            DataTable dt = objDbuTil.GetDefConsSumBatch(pCode, DateTime.Now.AddMonths(-1),pAge,pPvtGvt,pRundisc,pTrf);
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dvHead = dt.DefaultView;
-                filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
+                filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length).ToString());
                 dvHead.RowFilter = filterExp.ToString();
                 if (dvHead != null && dvHead.ToTable().Rows.Count > 0)
                 {
@@ -122,18 +122,44 @@ namespace DashBoardAPI.Models
         /// <param name="token"></param>
         /// <param name="code"></param>
         /// <returns></returns>
-        public DefaulterBatchSummary GetDefaulterSummaryBatch(string code)
+
+        public DefaulterBatchSummary GetDefaulterSummaryBatch(string pCode)
         {
             DefaulterBatchSummary _DefaulterSummary = new DefaulterBatchSummary();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
             StringBuilder filterExp = new StringBuilder();
 
-            DataTable dt = objDbuTil.GetDefConsSumBatch(code, DateTime.Now.AddMonths(-1));
+            DataTable dt = objDbuTil.GetDefConsSumBatch(pCode, DateTime.Now.AddMonths(-1));
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dvHead = dt.DefaultView;
-                        filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
+                filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length).ToString());
+                dvHead.RowFilter = filterExp.ToString();
+                if (dvHead != null && dvHead.ToTable().Rows.Count > 0)
+                {
+                    string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dvHead.ToTable().Rows[0], "BILLMONTH"));
+                    string cd = utility.GetColumnValue(dvHead.ToTable().Rows[0], "CODE");
+                    string name = utility.GetColumnValue(dvHead.ToTable().Rows[0], "NAME");
+                    _DefaulterSummary = new DefaulterBatchSummary(billMonth, cd, name, dt);
+                }
+
+            }
+
+            return _DefaulterSummary;
+        }
+        public DefaulterBatchSummary GetDefaulterSummaryBatch(string pCode, string pPvtGvt, string pRundisc, string pTrf)
+        {
+            DefaulterBatchSummary _DefaulterSummary = new DefaulterBatchSummary();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            StringBuilder filterExp = new StringBuilder();
+
+            DataTable dt = objDbuTil.GetDefConsSumBatch(pCode,DateTime.Now.AddMonths(-1), pPvtGvt, pRundisc,pTrf);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                DataView dvHead = dt.DefaultView;
+                filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length).ToString());
                 dvHead.RowFilter = filterExp.ToString();
                 if(dvHead!=null && dvHead.ToTable().Rows.Count>0)
                 {
@@ -142,6 +168,27 @@ namespace DashBoardAPI.Models
                     string name = utility.GetColumnValue(dvHead.ToTable().Rows[0], "NAME");
                     _DefaulterSummary = new DefaulterBatchSummary(billMonth, cd, name, dt);
                 }
+
+            }
+
+            return _DefaulterSummary;
+        }
+
+        public DefaultListRefWise GetDefListRefWise(string code, string rs, string age, string batch, string pgvt, string rundc, string trf, string srt)
+        {
+            DefaultListRefWise _DefaulterSummary = new DefaultListRefWise();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            StringBuilder filterExp = new StringBuilder();
+
+            DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), rs, age, batch,pgvt,rundc,trf,srt);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
+                string cd = utility.GetColumnValue(dt.Rows[0], "CODE");
+                string name = utility.GetColumnValue(dt.Rows[0], "NAME");
+                string slab = utility.GetColumnValue(dt.Rows[0], "SLAB");
+                _DefaulterSummary = new DefaultListRefWise(billMonth, cd, name, slab, dt);
 
             }
 
