@@ -10,10 +10,9 @@ namespace DashBoardAPI.Controllers
 {
     public class DefaultSumBatchController : ApiController
     {
-        public DefaulterBatchSummary Get(string code = "15")
+        public DefaulterBatchSummary Get(string code = "15", string type = "PRIVATE", string status = "RUNNING DEFAULTERS", string trf = "DOMESTIC")
         {
-            //token, code, type, status, tariff
-            return new DBoardBridge().GetDefaulterSummaryBatch(code);
+            return new DBoardBridge().GetDefaulterSummaryBatch(code, type, status, trf);
         }
     }
 }
