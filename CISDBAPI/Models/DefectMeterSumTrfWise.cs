@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using System.Web;
 using util;
 
@@ -27,17 +28,30 @@ namespace DashBoardAPI.Models
             this.BillingMonth = utility.GetBillMonth(pBillMon);
             this.CenterCode = pCode;
 
-            foreach (DataRow dr in pDT.Rows)
+            DataView dv = pDT.DefaultView;
+            StringBuilder filterExp = new StringBuilder();
+            filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length + 1).ToString());
+            dv.RowFilter = filterExp.ToString();
+
+            foreach (DataRowView dr in dv)
             {
                 defectTrfWise.Add(new DefectTrfWise(dr));
             }
+            filterExp = new StringBuilder();
+            filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length).ToString());
+            dv.RowFilter = filterExp.ToString();
+
+            if (dv.ToTable().Rows.Count>0)
+                defectTrfWise.Add(new DefectTrfWise("Total", dv[0]["CODE"].ToString(), dv[0]["NAME"].ToString(), dv[0]["DOMESTIC"].ToString(), dv[0]["COMMERCIAL"].ToString(),
+                    dv[0]["INDUSTRIAL"].ToString(), dv[0]["AGRICULTURE"].ToString(), dv[0]["OTHERS"].ToString(), dv[0]["TOTAL"].ToString()));
         }
     }
 
     public class DefectTrfWise
     {
         public string SrNo { get; set; }
-        public string OfficeName { get; set; }
+        public string CenterCode { get; set; }
+        public string CenterName { get; set; }
         public string Domestic { get; set; }
         public string Commercial { get; set; }
         public string Industrial { get; set; }
@@ -45,16 +59,30 @@ namespace DashBoardAPI.Models
         public string Others { get; set; }
         public string Total { get; set; }
 
-        public DefectTrfWise(DataRow dr)
+        public DefectTrfWise(DataRowView dr)
         {
             this.SrNo = utility.GetColumnValue(dr, "SRNO");
-            this.OfficeName = utility.GetColumnValue(dr, "NAME");
+            this.CenterCode = utility.GetColumnValue(dr, "CODE");
+            this.CenterName = utility.GetColumnValue(dr, "NAME");
             this.Domestic = utility.GetColumnValue(dr, "DOMESTIC");
             this.Commercial = utility.GetColumnValue(dr, "COMMERCIAL");
             this.Industrial = utility.GetColumnValue(dr, "INDUSTRIAL");
             this.Agricultural = utility.GetColumnValue(dr, "AGRICULTURE");
             this.Others = utility.GetColumnValue(dr, "OTHERS");
             this.Total = utility.GetColumnValue(dr, "TOTAL");
+        }
+
+        public DefectTrfWise(string pSrNo, string  pCode, string pName, string pDomestic, string pCommercial, string pInd, string pAgri, string pOther, string pTotal)
+        {
+            this.SrNo = pSrNo;
+            this.CenterCode = pCode;
+            this.CenterName = pName;
+            this.Domestic = pDomestic;
+            this.Commercial = pCommercial;
+            this.Industrial = pInd;
+            this.Agricultural = pAgri;
+            this.Others = pOther;
+            this.Total = pTotal;
         }
     }
 }
