@@ -265,12 +265,12 @@ namespace DashBoardAPI.Models
 
             return _DefaulterSummary;
         }
-        public CreditAdjustments GetCRAdjustments(string code,string BatchFrom, string BatchTo, char unitFlag)
+        public CreditAdjustments GetCRAdjustments(string code,string BatchFrom, char unitFlag)
         {
             CreditAdjustments _CreditAdjustments = new CreditAdjustments();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
-            DataTable dt = objDbuTil.GetCRAdjustments(code, DateTime.Now.AddMonths(-1),BatchFrom, BatchTo, unitFlag);
+            DataTable dt = objDbuTil.GetCRAdjustments(code, DateTime.Now.AddMonths(-1),BatchFrom, unitFlag);
             if (dt != null)
             {
                 DataView dv = dt.DefaultView;
@@ -288,24 +288,45 @@ namespace DashBoardAPI.Models
 
             return _CreditAdjustments;
         }
-        public DefectMeterSumTrfWise GetDefectMeterSumTrfWise(string code)
+        
+        public CreditAdjustmentsCentreWise GetCRAdjCentreWise(string pCode, string pBatchFrom, char pUnitFlag)
+        {
+            CreditAdjustmentsCentreWise _CreditAdjustments = new CreditAdjustmentsCentreWise();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DataTable dt = objDbuTil.GetCRAdjustmentsCentreWise(pCode, DateTime.Now.AddMonths(-1), pBatchFrom,  pUnitFlag);
+            if (dt != null)
+            {
+                //DataView dv = dt.DefaultView;
+                //dv.Sort = "CODE DESC";
+                //DataTable dt1 = dv.ToTable();
+
+                if (dt != null)
+                {
+                    _CreditAdjustments = new CreditAdjustmentsCentreWise(pCode, dt);
+                }
+            }
+
+            return _CreditAdjustments;
+        }
+        public DefectMeterSumTrfWise GetDefectMeterSumTrfWise(string pCode)
         {
             DefectMeterSumTrfWise _DefectMeterSumTrfWise = new DefectMeterSumTrfWise();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
-            DataTable dt = objDbuTil.GetDefectMeterSumTrfWise(code, DateTime.Now.AddMonths(-1));
+            DataTable dt = objDbuTil.GetDefectMeterSumTrfWise(pCode, DateTime.Now.AddMonths(-1));
             if (dt != null)
             {
-                DataView dv = dt.DefaultView;
-                dv.Sort = "CODE DESC";
-                DataTable dt1 = dv.ToTable();
+                //DataView dv = dt.DefaultView;
+                //dv.Sort = "CODE DESC";
+                //DataTable dt1 = dv.ToTable();
                 
-                if (dt1 != null)
+                if (dt != null)
                 {
-                    string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
-                    string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
+                    string billMonth = utility.GetColumnValue(dt.Rows[0], "BILLMONTH");
+                    string cd = utility.GetColumnValue(dt.Rows[0], "CODE");
 
-                    _DefectMeterSumTrfWise = new DefectMeterSumTrfWise(billMonth, cd, dt1);
+                    _DefectMeterSumTrfWise = new DefectMeterSumTrfWise(billMonth, pCode, dt);
                 }
             }
 

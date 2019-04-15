@@ -782,11 +782,13 @@ namespace DAL
         /// <param name="pBatchTo">ending batch no.</param>
         /// <param name="pUnit">with & without units(0), with unit(1), without units(2) </param>
         /// <returns></returns>
-        public DataTable GetCRAdjustments(string pCode, DateTime pBillMon, string pBatchFrom, string pBatchTo, char pUnit)
+        public DataTable GetCRAdjustments(string pCode, DateTime pBillMon, string pBatchFrom,  char pUnit)
         {
             OracleConnection con = null;
             OracleCommand cmd;
             con = new OracleConnection(_constr);
+            string fromBatch = pBatchFrom;
+            string toBatch = pBatchFrom;
 
             if (con.State != ConnectionState.Open)
             {
@@ -804,10 +806,15 @@ namespace DAL
                 //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " WHERE SDIVCODE = '" + pCode + "'";
             }
-
-            if (!string.IsNullOrEmpty(pBatchFrom) && !string.IsNullOrEmpty(pBatchTo))
+            if (pBatchFrom.IndexOf("-") > 0)
             {
-                sql += " AND BATCH BETWEEN '" + pBatchFrom + "' and '" + pBatchTo + "'";
+                fromBatch = pBatchFrom.Split('-')[0];
+                toBatch = pBatchFrom.Split('-')[1];
+            }
+
+            if (!string.IsNullOrEmpty(fromBatch) && !string.IsNullOrEmpty(toBatch))
+            {
+                sql += " AND BATCH BETWEEN '" + fromBatch + "' and '" + toBatch + "'";
             }
 
             if (pUnit!=' ' && pUnit!='0')
@@ -859,7 +866,125 @@ namespace DAL
 
             return null;
         }
+        //Credit Adj. Details Centerwise
+        public DataTable GetCRAdjustmentsCentreWise(string pCode, DateTime pBillMon, string pBatchFrom, char pUnit)
+        {
+            OracleConnection con = null;
+            OracleCommand cmd;
+            con = new OracleConnection(_constr);
+            string fromBatch = pBatchFrom;
+            string toBatch=pBatchFrom;
 
+            if (con.State != ConnectionState.Open)
+            {
+                con.Open();
+            }
+
+            string sortorder = "SRT_ORDER1";
+            switch (pCode.Length)
+            {
+                case 2:
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
+                case 3:
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
+                case 4:
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
+                default:
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
+
+
+            }
+
+            string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME, count(REF_NO) TOTREFFNOS,  " +
+                         " B_PERIOD BILLMONTH, sum(UNITS_ADJ) UNITS, SUM(AMOUNT_ADJ) AMOUNT" +
+                         " from VW_CR_ADJMS ";
+            
+            if (pBatchFrom.IndexOf("-") > 0)
+            {
+                fromBatch= pBatchFrom.Split('-')[0];
+                toBatch = pBatchFrom.Split('-')[1];
+            }
+
+            if (!string.IsNullOrEmpty(pCode))
+            {
+                sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
+            }
+
+            if (!string.IsNullOrEmpty(fromBatch) && !string.IsNullOrEmpty(toBatch))
+            {
+                sql += " AND BATCH BETWEEN '" + fromBatch + "' and '" + toBatch + "'";
+            }
+
+            if (pUnit != ' ' && pUnit != '0')
+            {
+                if (pUnit == '1')
+                {
+                    sql += " AND nvl(UNITS_ADJ,0) != 0 ";
+                }
+                else
+                {
+                    sql += " AND nvl(UNITS_ADJ,0) = 0 ";
+
+                }
+            }
+
+            sql += " GROUP BY SRT_ORDER2, SRT_ORDER1, SDIVCODE, SDIV_NAME, B_PERIOD ";
+            sql += " ORDER BY SRT_ORDER1";
+
+            cmd = new OracleCommand(sql, con);
+            cmd.CommandType = CommandType.Text;
+            DataSet ds = new DataSet();
+            OracleDataAdapter ad = new OracleDataAdapter();
+            ad.SelectCommand = cmd;
+            try
+            {
+                ad.Fill(ds);
+
+            }
+            catch (Exception ex)
+            {
+                DataTable dtErr = new DataTable();
+                dtErr.Columns.Add("Desc");
+                DataRow drErr = dtErr.NewRow();
+                drErr["Desc"] = ex.ToString();
+                dtErr.Rows.Add(drErr);
+                return dtErr;
+            }
+            finally
+            {
+                if (con != null && con.State == ConnectionState.Open)
+                {
+                    con.Close();
+                }
+            }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="billMon"></param>
+        /// <param name="age"></param>
+        /// <param name="trf"></param>
+        /// <returns></returns>
         public DataTable GetDefectiveMeterRegionWise(string code, DateTime billMon, string age, string trf)
         {
             OracleConnection con = null;
@@ -1170,7 +1295,7 @@ namespace DAL
 
             if (!string.IsNullOrEmpty(code))
             {
-                sql += " WHERE SDIVCODE = '" + code + "'"
+                sql += " WHERE SDIVCODE LIKE  '" + code + "%' AND SRT_ORDER2 " + sortorder
                        + " ORDER BY SRT_ORDER1";
             }
             cmd = new OracleCommand(sql, con);
