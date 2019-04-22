@@ -12,8 +12,8 @@ namespace DashBoardAPI.Controllers
     {
         public DefaulterSummary Get(string code = "15", string type = "PRIVATE", string status = "RUNNING DEFAULTERS", string trf = "DOMESTIC")
         {
-            //                                               token, code, type, status, tariff
             return new DBoardBridge().GetDefaulterSummaryAmnt(code, type, status, trf);
+            //return new DBoardBridge().GetDefaulterSummaryAmntBySproc(code, type, status, trf);
         }
     }
 }
