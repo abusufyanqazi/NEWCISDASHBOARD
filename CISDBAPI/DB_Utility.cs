@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Web;
 using System.Collections;
 //using System.Data.OracleClient;
+using Oracle.ManagedDataAccess;
 using Oracle.ManagedDataAccess.Client;
 
 /// <summary>
@@ -22,9 +23,9 @@ namespace DAL
             //
             _constr = conStr;
         }
-        
+
         //VW_DEF_CONS_SUM_FDRCODE_WISE
-        
+
         public DataTable GetDefConsFdrCdWise(string pCode, DateTime pBillMon)
         {
             OracleConnection con = null;
@@ -270,21 +271,21 @@ namespace DAL
                 fromRs = pRs.Split('-')[0];
                 toRs = pRs.Split('-')[1];
             }
-            
-            filter += " AND AMOUNT BETWEEN " + fromRs   + " AND " + toRs;
+
+            filter += " AND AMOUNT BETWEEN " + fromRs + " AND " + toRs;
 
             if (!string.Empty.Equals(pTrf) && !pTrf.ToUpper().Equals("ALL"))
                 filter += " AND  TARIFF_CAT LIKE '" + pTrf + "'";
-            
-            if (!string.Empty.Equals(pBatch) && ! pBatch.ToUpper().Equals("ALL"))
-                filter += " AND REFNO LIKE '" + pAge.PadLeft(2,'0') + "%'";
+
+            if (!string.Empty.Equals(pBatch) && !pBatch.ToUpper().Equals("ALL"))
+                filter += " AND REFNO LIKE '" + pAge.PadLeft(2, '0') + "%'";
 
             if (!string.Empty.Equals(pAge))
                 filter += " AND AGE >= " + pAge;
 
             if (!string.Empty.Equals(pPvtGvt))
                 filter += " AND DEF_TYPE LIKE '" + pPvtGvt + "'";
-            
+
             if (!string.Empty.Equals(pRundisc))
                 filter += " AND DEF_STATUS LIKE '" + pRundisc + "'";
 
@@ -360,7 +361,7 @@ namespace DAL
 
             return null;
         }
-        
+
         //VW_DEF_CONS_SUM_BATCH_WISE
         public DataTable GetDefConsSumBatch(string pCode, DateTime pBillMon)
         {
@@ -528,7 +529,7 @@ namespace DAL
 
             return null;
         }
-        public DataTable GetDefConsSumBatch(string pCode, DateTime pBillMon, string pAge,string pPvtGvt, string pRundisc, string pTrf)
+        public DataTable GetDefConsSumBatch(string pCode, DateTime pBillMon, string pAge, string pPvtGvt, string pRundisc, string pTrf)
         {
             OracleConnection con = null;
             OracleCommand cmd;
@@ -617,7 +618,7 @@ namespace DAL
 
             return null;
         }
-        
+
         public DataTable GetDefSummAgeSlab(string pCode, DateTime pBillMon, string pType, string pStatus, string pTariff)
         {
             OracleConnection con = null;
@@ -633,8 +634,8 @@ namespace DAL
             string sql = @" SELECT ROWNUM SrNO, SRT_ORDER2, SRT_ORDER1, CODE, NAME , BILLMONTH, SLAB_NAME, CONSUMERS, AMOUNT FROM (";
             sql += @" SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME " +
                          ", B_PERIOD BILLMONTH, SLAB_NAME, SUM(CONSUMERS) CONSUMERS, SUM(AMOUNT) AMOUNT " +
-                         "from VW_DEF_CONS_SUM_AGE_SLABS "+
-            " WHERE B_PERIOD=(SELECT MAX(B_PERIOD) FROM VW_DEF_CONS_SUM_AGE_SLABS)";
+                         "from VW_DEF_CONS_SUM_AGE_SLABS " +
+            " WHERE 1=1";
             if (!string.IsNullOrEmpty(pCode))
             {
                 //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
@@ -711,7 +712,7 @@ namespace DAL
                 " SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME , B_PERIOD BILLMONTH , SLAB_ID, SLAB_NAME,  " +
                          " Sum(CONSUMERS) CONSUMERS, Sum(AMOUNT) AMOUNT " +
                          "from VW_DEF_CONS_SUM_AMNT_SLABS " +
-                          " WHERE B_PERIOD=(SELECT MAX(B_PERIOD) FROM VW_DEF_CONS_SUM_AMNT_SLABS)";
+                          " WHERE 1=1 ";
 
             if (!string.IsNullOrEmpty(pCode))
             {
@@ -782,7 +783,7 @@ namespace DAL
         /// <param name="pBatchTo">ending batch no.</param>
         /// <param name="pUnit">with & without units(0), with unit(1), without units(2) </param>
         /// <returns></returns>
-        public DataTable GetCRAdjustments(string pCode, DateTime pBillMon, string pBatchFrom,  char pUnit)
+        public DataTable GetCRAdjustments(string pCode, DateTime pBillMon, string pBatchFrom, char pUnit)
         {
             OracleConnection con = null;
             OracleCommand cmd;
@@ -817,9 +818,9 @@ namespace DAL
                 sql += " AND BATCH BETWEEN '" + fromBatch + "' and '" + toBatch + "'";
             }
 
-            if (pUnit!=' ' && pUnit!='0')
+            if (pUnit != ' ' && pUnit != '0')
             {
-                if(pUnit=='1')
+                if (pUnit == '1')
                 {
                     sql += " AND nvl(UNITS_ADJ,0) != 0 ";
                 }
@@ -830,7 +831,7 @@ namespace DAL
                 }
             }
 
-           
+
             sql += " ORDER BY SRT_ORDER1";
 
             cmd = new OracleCommand(sql, con);
@@ -873,7 +874,7 @@ namespace DAL
             OracleCommand cmd;
             con = new OracleConnection(_constr);
             string fromBatch = pBatchFrom;
-            string toBatch=pBatchFrom;
+            string toBatch = pBatchFrom;
 
             if (con.State != ConnectionState.Open)
             {
@@ -910,10 +911,10 @@ namespace DAL
             string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME, count(REF_NO) TOTREFFNOS,  " +
                          " B_PERIOD BILLMONTH, sum(UNITS_ADJ) UNITS, SUM(AMOUNT_ADJ) AMOUNT" +
                          " from VW_CR_ADJMS ";
-            
+
             if (pBatchFrom.IndexOf("-") > 0)
             {
-                fromBatch= pBatchFrom.Split('-')[0];
+                fromBatch = pBatchFrom.Split('-')[0];
                 toBatch = pBatchFrom.Split('-')[1];
             }
 
@@ -1031,20 +1032,19 @@ namespace DAL
             }
 
             string sql = "SELECT CODE, NAME, BILL_MONTH, SUM(TotSinglePhase) TotSinglePhase, SUM(TotThreePhase) TotThreePhase, SUM(TotDefCons) TotDefCons " +
-                            "FROM ( "+
+                            "FROM ( " +
                             "select SDIVCODE CODE, SDIV_NAME NAME, BILL_MONTH, " +
-                            "case METER_TYPE when 'SINGLE PHASE' then 1 "+
-                            "    else 0 end TotSinglePhase, "+
-                "case METER_TYPE when 'THREE PHASE' then 1 "+
-                 "   else 0 end TotThreePhase, "+
+                            "case METER_TYPE when 'SINGLE PHASE' then 1 " +
+                            "    else 0 end TotSinglePhase, " +
+                "case METER_TYPE when 'THREE PHASE' then 1 " +
+                 "   else 0 end TotThreePhase, " +
                 "1 TotDefCons " +
                          "from VW_DEFECTIVE_METERS_PROG ";
 
             if (!string.IsNullOrEmpty(code))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
-                sql += " AND BILL_MONTH = (SELECT MAX(BILL_MONTH) FROM VW_DEFECTIVE_METERS_PROG WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder + ")";
+                //sql += " AND BILL_MONTH = (SELECT MAX(BILL_MONTH) FROM VW_DEFECTIVE_METERS_PROG WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder + ")";
             }
 
             if (!string.IsNullOrEmpty(age))
@@ -1108,12 +1108,12 @@ namespace DAL
             string fromAge = age;
             string toAge = age;
 
-            if(age.IndexOf("-")>0)
+            if (age.IndexOf("-") > 0)
             {
                 fromAge = age.Split('-')[0];
                 toAge = age.Split('-')[1];
             }
-            
+
             string sql = @"select ROWNUM SRNO, SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME, METER_TYPE PHASE, TARIFF_CAT CATEGORY, CKEY REFNO, NAME_ADDRESS, TRF_CD, SAN_LOAD, CAT, DEFECT_AGE, STATUS, BILL_MONTH " +
                          "from VW_DEFECTIVE_METERS_PROG ";
 
@@ -1121,7 +1121,7 @@ namespace DAL
             {
                 //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " WHERE SDIVCODE = '" + code + "'";
-                sql += " AND BILL_MONTH = (SELECT MAX(BILL_MONTH) FROM VW_DEFECTIVE_METERS_PROG WHERE SDIVCODE = '" + code + "')";
+                //sql += " AND BILL_MONTH = (SELECT MAX(BILL_MONTH) FROM VW_DEFECTIVE_METERS_PROG WHERE SDIVCODE = '" + code + "')";
             }
 
             if (!string.IsNullOrEmpty(age))
@@ -1190,25 +1190,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
             }
 
             string sql = @"SELECT ROWNUM SRNO, SRT_ORDER2, SRT_ORDER1, BILLMONTH, SDIVCODE CODE, SDIVNAME NAME, ONE_MONTH, TWO_TO_3_MONTH, FOUR_TO_6_MONTH, MORE_THEN_6_MONTH " +
@@ -1269,25 +1269,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
             }
 
             string sql = @"SELECT ROWNUM SRNO, SRT_ORDER2, SRT_ORDER1, BILLMONTH, SDIVCODE CODE, SDIVNAME NAME, DOMESTIC, COMMERCIAL, INDUSTRIAL, AGRICULTURE, OTHERS, TOTAL " +
@@ -1389,7 +1389,7 @@ namespace DAL
 
             return null;
         }
-     
+
         public DataTable GetExtraHeaveyBillRegion(string code, DateTime billMon)
         {
             OracleConnection con = null;
@@ -1406,25 +1406,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
 
             }
             string sql = @"SELECT B_PERIOD BillingMonth, SDIVCODE CODE, SDIV_NAME NAME, sum(UNITS) UNITS, sum(AMOUNT) AMOUNT"
@@ -1514,7 +1514,7 @@ namespace DAL
             if (!string.IsNullOrEmpty(code))
             {
                 sql += " WHERE sdiv_code LIKE '" + code + "%' AND SRT_ORDER2 " + sortorder
-                       //+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'" 
+                    //+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'" 
                        + " AND BILLMONTH=(SELECT MAX(BILLMONTH) FROM VW_CASH_COLL_SUMMARY)"
                        + " ORDER BY SRT_ORDER1";
             }
@@ -1526,7 +1526,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-                
+
             }
             catch (Exception ex)
             {
@@ -1545,9 +1545,9 @@ namespace DAL
                 }
             }
             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            {
+                return ds.Tables[0];
+            }
 
             return null;
         }
@@ -1577,7 +1577,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-                
+
             }
             catch (Exception ex)
             {
@@ -1596,9 +1596,9 @@ namespace DAL
                 }
             }
             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
         public DataTable getBillingStatus()
@@ -1620,7 +1620,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -1638,10 +1638,10 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
         public DataTable GetCollVsCompAssmnt(string code)
@@ -1654,25 +1654,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
 
 
             }
@@ -1699,7 +1699,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -1717,10 +1717,10 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
         //COLLECTION VS BILLING 
@@ -1734,25 +1734,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
 
 
             }
@@ -1780,7 +1780,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -1798,10 +1798,10 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
         public DataTable getReceiveables(string code, DateTime billMon)
@@ -1818,25 +1818,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
 
 
             }
@@ -1862,7 +1862,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -1880,10 +1880,10 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
         public DataTable getMonLosses(string code, DateTime billMon)
@@ -1899,25 +1899,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
 
 
             }
@@ -1941,7 +1941,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -1959,10 +1959,10 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
         public DataTable getPrgsLosses(string code, DateTime billMon)
@@ -1978,25 +1978,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
 
 
             }
@@ -2020,7 +2020,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -2038,10 +2038,10 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
         public DataTable getBillingStatsBatchWise(string code, DateTime billMon)
@@ -2058,25 +2058,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
 
 
             }
@@ -2100,7 +2100,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -2118,17 +2118,17 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
 
         public DataTable getAssesmentBatchWise(string code, DateTime billMon)
         {
             string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, MONTH, BATCH, SDIV_CODE, SDIV_NAME, NOBILLSISSUED, OPB, CURASSESS, GOVTASSESS, NET, UNITBILLED, RURALUNITBILLED, URBANUNITBILLED, NOADJUSTM, UNITADJ, AMTADJ, NODETADJ, DETADJUNITS, DETADJAMT,"
-                         +" ASSESS_DOM, ASSESS_COM, ASSESS_IND, ASSESS_AGRI"
+                         + " ASSESS_DOM, ASSESS_COM, ASSESS_IND, ASSESS_AGRI"
                          + " from VW_ASSESMENT_BATCHWISE "
                          + " where MONTH = (select max(MONTH) from VW_ASSESMENT_BATCHWISE)";
             OracleConnection con = null;
@@ -2182,7 +2182,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-                
+
             }
             catch (Exception ex)
             {
@@ -2201,9 +2201,9 @@ namespace DAL
                 }
             }
             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
 
@@ -2221,25 +2221,25 @@ namespace DAL
             switch (code.Length)
             {
                 case 2:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
                 case 3:
-                {
-                    sortorder = "IN('2','3')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('2','3')";
+                        break;
+                    }
                 case 4:
-                {
-                    sortorder = "IN('1','2')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('1','2')";
+                        break;
+                    }
                 default:
-                {
-                    sortorder = "IN('3','5')";
-                    break;
-                }
+                    {
+                        sortorder = "IN('3','5')";
+                        break;
+                    }
 
 
             }
@@ -2263,7 +2263,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -2281,10 +2281,10 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
 
@@ -2292,19 +2292,19 @@ namespace DAL
         {
             string sql = @"select BILL_MNTH, NOTE_NO, ADJ_DT, UNITS, AMOUNT,PAY_AGAINTS_DET"
                          + " from vw_theft_dt_portal "
-                         //+ " where BATCH||SDIV|| CONS_NO ='" + refNo + "'";
+                //+ " where BATCH||SDIV|| CONS_NO ='" + refNo + "'";
                          + " WHERE  APPLICATION_NO = (SELECT GET_APP_BY_REF_CUR_MONTH('" + refNo + "') FROM DUAL)";
             OracleConnection con = null;
             OracleCommand cmd;
             string mndConStr = System.Configuration.ConfigurationManager.ConnectionStrings["MND_CONSTR"].ToString();
             con = new OracleConnection(mndConStr);
 
-            
+
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
             }
-           
+
             cmd = new OracleCommand(sql, con);
             cmd.CommandType = CommandType.Text;
             DataSet ds = new DataSet();
@@ -2313,7 +2313,7 @@ namespace DAL
             try
             {
                 ad.Fill(ds);
-               
+
             }
             catch (Exception ex)
             {
@@ -2331,14 +2331,12 @@ namespace DAL
                     con.Close();
                 }
             }
-             if (ds.Tables[0].Rows.Count > 0)
-                {
-                    return ds.Tables[0];
-                }
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                return ds.Tables[0];
+            }
             return null;
         }
-
-
         public DataTable getBillData(string ts, string kwh, DateTime strtPeriod, DateTime endPeriod, string trf)
         {
             string startMonth = strtPeriod.ToString("dd") + "-" + strtPeriod.ToString("MMM") + "-" +
@@ -2358,8 +2356,8 @@ namespace DAL
                     con.Open();
                 }
 
-               OracleCommand cmd =
-                    new OracleCommand(sql, con);
+                OracleCommand cmd =
+                     new OracleCommand(sql, con);
 
                 OracleParameter opTS = new OracleParameter("TS", OracleDbType.Varchar2);
                 opTS.Value = ts;
@@ -2410,5 +2408,81 @@ namespace DAL
 
             return dt;
         }
+
+
+        public DataTable GetDefConsSumAmntSlabsBySproc(string pCode, string pDefType, string pDefStatus, string pTariffCat, string pSortOrder)
+        {
+            DataTable dt = new DataTable();
+            using (OracleConnection cn = new OracleConnection(_constr))
+            {
+                try
+                {
+
+
+                    string sql = "PKG_DSH_VIEWS.proc_DEF_CONS_SUM_AMNT_SLABS";
+                    OracleCommand cmd = new OracleCommand(sql, cn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.InitialLONGFetchSize = 1000;
+                    //cmd.CommandText = "disco_dsh."+"PKG_DSH_VIEWS.proc_DEF_CONS_SUM_AMNT_SLABS";
+                    OracleParameter cur_dsh = new OracleParameter("cur_dsh", OracleDbType.RefCursor);
+                    cur_dsh.Direction = ParameterDirection.InputOutput;
+                    cmd.Parameters.Add(cur_dsh);
+
+                    OracleParameter SRTORDER2 = new OracleParameter("P_SRTORDER2", OracleDbType.Varchar2);
+                    SRTORDER2.Value = pSortOrder;
+                    SRTORDER2.Direction = ParameterDirection.Input;
+                    cmd.Parameters.Add(SRTORDER2);
+
+                    OracleParameter SDIVCODE = new OracleParameter("P_SDIVCODE", OracleDbType.Varchar2);
+                    SDIVCODE.Value = pSortOrder;
+                    SDIVCODE.Direction = ParameterDirection.Input;
+                    cmd.Parameters.Add(SDIVCODE);
+
+                    OracleParameter DEF_TYPE = new OracleParameter("P_DEF_TYPE", OracleDbType.Varchar2);
+                    DEF_TYPE.Value = pDefType;
+                    DEF_TYPE.Direction = ParameterDirection.Input;
+                    cmd.Parameters.Add(DEF_TYPE);
+
+
+                    OracleParameter DEF_STATUS = new OracleParameter("P_DEF_STATUS", OracleDbType.Varchar2);
+                    DEF_STATUS.Value = pDefStatus;
+                    DEF_STATUS.Direction = ParameterDirection.Input;
+                    cmd.Parameters.Add(DEF_STATUS);
+
+                    OracleParameter TARIFF_CAT = new OracleParameter("P_TARIFF_CAT", OracleDbType.Varchar2);
+                    TARIFF_CAT.Value = pDefStatus;
+                    TARIFF_CAT.Direction = ParameterDirection.Input;
+                    cmd.Parameters.Add(TARIFF_CAT);
+
+                    if (cn.State != ConnectionState.Open)
+                    {
+                        cn.Open();
+                    }
+
+                    cmd.ExecuteNonQuery();
+
+                    OracleDataAdapter da = new OracleDataAdapter(cmd);
+                    da.Fill(dt);
+                }
+                catch (Exception ex)
+                {
+                    DataTable dtErr = new DataTable();
+                    dtErr.Columns.Add("Desc");
+                    DataRow drErr = dtErr.NewRow();
+                    drErr["Desc"] = ex.ToString();
+                    dtErr.Rows.Add(drErr);
+                    dt = dtErr;
+                }
+                finally
+                {
+                    if (cn != null && cn.State == ConnectionState.Open)
+                    {
+                        cn.Close();
+
+                    }
+                }
+                return dt;
+            }
+        }
     }
-}   
+}

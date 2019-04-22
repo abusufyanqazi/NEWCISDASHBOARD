@@ -265,6 +265,30 @@ namespace DashBoardAPI.Models
 
             return _DefaulterSummary;
         }
+
+        public DefaulterSummary GetDefaulterSummaryAmntBySproc(string code, string type, string status, string tariff)
+        {
+            DefaulterSummary _DefaulterSummary = new DefaulterSummary();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DataTable dt = objDbuTil.GetDefConsSumAmntSlabsBySproc(code, type, status, tariff, code);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                DataView dv = dt.DefaultView;
+                dv.Sort = "CODE DESC";
+                DataTable dt1 = dv.ToTable();
+
+                if (dt1 != null)
+                {
+                    string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
+                    string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
+                    string name = utility.GetColumnValue(dt1.Rows[0], "NAME");
+                    _DefaulterSummary = new DefaulterSummary(billMonth, cd, name, dt1);
+                }
+            }
+
+            return _DefaulterSummary;
+        }
         public CreditAdjustments GetCRAdjustments(string code,string BatchFrom, char unitFlag)
         {
             CreditAdjustments _CreditAdjustments = new CreditAdjustments();
