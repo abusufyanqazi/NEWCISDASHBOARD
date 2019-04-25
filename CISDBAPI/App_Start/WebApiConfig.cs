@@ -15,6 +15,13 @@ namespace DashBoardAPI
             // Web API routes
 
             config.Routes.MapHttpRoute(
+            name: "param2",
+            routeTemplate: "{controller}/{code}/{fdr}",
+            defaults: new { controller = "Values", action = "Get", code = RouteParameter.Optional, fdr = RouteParameter.Optional }
+        );
+
+
+            config.Routes.MapHttpRoute(
               name: "param3",
               routeTemplate: "{controller}/{code}/{batch}/{units}",
               defaults: new { controller = "Values", action = "Get", code = RouteParameter.Optional, batch = RouteParameter.Optional, units = RouteParameter.Optional}
@@ -25,6 +32,12 @@ namespace DashBoardAPI
                 name: "param4",
                 routeTemplate: "{controller}/{code}/{age}/{phase}/{trf}",
                 defaults: new { controller = "Values", action = "Get", code = RouteParameter.Optional, age = RouteParameter.Optional, phase = RouteParameter.Optional, trf = RouteParameter.Optional}
+            );
+
+            config.Routes.MapHttpRoute(
+                name: "param5",
+                routeTemplate: "{controller}/{code}/{type}/{status}/{trf}/{slab}",
+                defaults: new { controller = "Values", action = "Get", code = RouteParameter.Optional, type = RouteParameter.Optional, status = RouteParameter.Optional, trf = RouteParameter.Optional, slab = RouteParameter.Optional}
             );
 
             config.Routes.MapHttpRoute(

@@ -11,18 +11,25 @@ namespace DashBoardAPI.Models
 
     public class DefaultSumCentreWise
     {
-        public string BillingMonth { get; set; }
+        public string AsOn { get; set; }
+        public string CenterCode { get; set; }
+        public string CenterName { get; set; }
 
         public List<DefaultSumCentre> DfltrConsSmry = new List<DefaultSumCentre>();
 
         public DefaultSumCentreWise()
         {
-            this.BillingMonth = string.Empty;
+            this.AsOn = string.Empty;
+            this.CenterCode = string.Empty;
+            this.CenterName = string.Empty;
         }
 
         public DefaultSumCentreWise(string pAsOn, string pCode, string pName, DataTable pDT)
         {
-            this.BillingMonth = utility.GetFormatedDateYYYY(pAsOn);
+            this.AsOn= utility.GetFormatedDateYYYY(pAsOn);
+            this.CenterCode = pCode;
+            this.CenterName = pName;
+
             DataView dv = pDT.DefaultView;
             StringBuilder filterExp = new StringBuilder();
             filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length+1).ToString());

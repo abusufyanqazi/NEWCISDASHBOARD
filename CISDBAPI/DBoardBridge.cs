@@ -16,6 +16,25 @@ namespace DashBoardAPI.Models
     {
         static string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["CONSTR"].ToString();
 
+        public DefConsListFdrWise GetDefConsListFdrCdWise(string code, string fdrCode)
+        {
+            DefConsListFdrWise _DefConsListFdrWise = new DefConsListFdrWise();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            StringBuilder filterExp = new StringBuilder();
+
+            DataTable dt = objDbuTil.GetDefListFeederWise(code, DateTime.Now.AddMonths(-1), fdrCode);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
+                string cd = utility.GetColumnValue(dt.Rows[0], "CODE");
+                string name = utility.GetColumnValue(dt.Rows[0], "FEEDER_NAME");
+                _DefConsListFdrWise = new DefConsListFdrWise(cd, name, dt);
+
+            }
+            return _DefConsListFdrWise;
+        }
+
         //
         public DefaultSumFdrWise GetDefConsFdrCdWise(string code)
         {
@@ -36,14 +55,14 @@ namespace DashBoardAPI.Models
 
             return _DefaultSumFdrWise;
         }
-        public DefaultListRefWise GetDefListRefWise(string code, string type, string status, string tariff, string pSlab)
+     public DefaultListRefWise GetDefListRefWise(string code, string type, string status, string tariff, string pSlab, char flagAgAMnt)
         {
             DefaultListRefWise _DefaulterSummary = new DefaultListRefWise();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
             StringBuilder filterExp = new StringBuilder();
 
-            DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), type, status, tariff, pSlab);
+            DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), type, status, tariff, pSlab, flagAgAMnt);
             if (dt != null && dt.Rows.Count > 0)
             {
                     string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
@@ -266,6 +285,52 @@ namespace DashBoardAPI.Models
             return _DefaulterSummary;
         }
 
+        public DefaultSumCentreWise GetDefaulterSummaryAgeCentreWise(string pCode, string pType, string pStatus, string pTariff)
+        {
+            DefaultSumCentreWise _DefaulterSummary = new DefaultSumCentreWise();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DataTable dt = objDbuTil.GetDefSummAgeSlabCentreWise(pCode, DateTime.Now.AddMonths(-1), pType , pStatus, pTariff);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                DataView dv = dt.DefaultView;
+                DataTable dt1 = dv.ToTable();
+
+                if (dt1 != null)
+                {
+                    string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
+                    string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
+                    string name = utility.GetColumnValue(dt1.Rows[0], "NAME");
+                    _DefaulterSummary = new DefaultSumCentreWise(billMonth, pCode, name, dt1);
+                }
+            }
+
+            return _DefaulterSummary;
+        }
+
+        public DefaultSumCentreWise GetDefaulterSummaryAmntCentreWise(string pCode, string pType, string pStatus, string pTariff)
+        {
+            DefaultSumCentreWise _DefaulterSummary = new DefaultSumCentreWise();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DataTable dt = objDbuTil.GetDefSummAmntSlabCentreWise(pCode, DateTime.Now.AddMonths(-1), pType, pStatus, pTariff);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                DataView dv = dt.DefaultView;
+                DataTable dt1 = dv.ToTable();
+
+                if (dt1 != null)
+                {
+                    string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
+                    string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
+                    string name = utility.GetColumnValue(dt1.Rows[0], "NAME");
+                    _DefaulterSummary = new DefaultSumCentreWise(billMonth, pCode, name, dt1);
+                }
+            }
+
+            return _DefaulterSummary;
+        }
+    
         public DefaulterSummary GetDefaulterSummaryAmntBySproc(string code, string type, string status, string tariff)
         {
             DefaulterSummary _DefaulterSummary = new DefaulterSummary();

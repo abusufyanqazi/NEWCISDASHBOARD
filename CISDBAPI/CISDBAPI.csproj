@@ -144,12 +144,16 @@
     <Compile Include="Controllers\CollectCompAssMntController.cs" />
     <Compile Include="Controllers\CreditAdjustmentController.cs" />
     <Compile Include="Controllers\DefaultListCntrWiseController.cs" />
+    <Compile Include="Controllers\DefaultListRefAgeController.cs" />
     <Compile Include="Controllers\DefaultListRefController.cs" />
     <Compile Include="Controllers\DefaultSumAgeController.cs" />
+    <Compile Include="Controllers\DefaultSumAgeCWController.cs" />
     <Compile Include="Controllers\DefaultSumAmntController.cs" />
     <Compile Include="Controllers\DefaultSumBatchController.cs" />
+    <Compile Include="Controllers\DefaultSumAmntCWController.cs" />
     <Compile Include="Controllers\DefaultSumCntrWiseController.cs" />
     <Compile Include="Controllers\DefConsFdrCdWiseController.cs" />
+    <Compile Include="Controllers\DefConsListFdrWiseController.cs" />
     <Compile Include="Controllers\DefectDetailController.cs" />
     <Compile Include="Controllers\DefectiveDetailRController.cs" />
     <Compile Include="Controllers\DefectSumMonWiseController.cs" />
@@ -157,6 +161,7 @@
     <Compile Include="Controllers\ExtraHeaveyBillController.cs" />
     <Compile Include="Controllers\ExtraHeaveyBillRController.cs" />
     <Compile Include="Controllers\FeederLossesController.cs" />
+    <Compile Include="Controllers\GetCRAdjCentreWiseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MonLossesController.cs" />
     <Compile Include="Controllers\PrgsLossesController.cs" />
@@ -181,6 +186,7 @@
     <Compile Include="Models\DefaultListRefWise.cs" />
     <Compile Include="Models\DefaultSumCentreWise.cs" />
     <Compile Include="Models\DefaultSumFdrWise.cs" />
+    <Compile Include="Models\DefConsListFdrWise.cs" />
     <Compile Include="Models\DefectiveDetails.cs" />
     <Compile Include="Models\DefectMeterSumMonWise.cs" />
     <Compile Include="Models\DefectMeterSumTrfWise.cs" />
