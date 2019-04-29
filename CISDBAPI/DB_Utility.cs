@@ -25,7 +25,56 @@ namespace DAL
         }
 
         //VW_DEF_CONS_SUM_FDRCODE_WISE
+        public string GetFeederNameByCode(string pCode, string pFdrCode)
+        {
+            string feederName = string.Empty;
+            OracleConnection con = null;
+            OracleCommand cmd;
+            con = new OracleConnection(_constr);
 
+            if (con.State != ConnectionState.Open)
+            {
+                con.Open();
+            }
+
+            string sql = @"select FDRNAME  " +
+                         "from VW_DEF_CONS_SUM_FDRCODE_WISE " +
+                         "WHERE rownum=1 ";
+
+            if (!string.IsNullOrEmpty(pCode))
+            {
+                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                sql += " AND SDIVCODE = '" + pCode + "'";
+            }
+
+            if (!string.IsNullOrEmpty(pFdrCode))
+            {
+                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                sql += " AND FDRCODE = '" + pFdrCode + "'";
+            }
+
+            cmd = new OracleCommand(sql, con);
+            cmd.CommandType = CommandType.Text;
+            
+            try
+            {
+                feederName = cmd.ExecuteScalar().ToString();
+
+            }
+            catch (Exception ex)
+            {
+                feederName = ex.ToString();
+            }
+            finally
+            {
+                if (con != null && con.State == ConnectionState.Open)
+                {
+                    con.Close();
+                }
+            }
+            
+            return feederName;
+        }
         public DataTable GetDefConsFdrCdWise(string pCode, DateTime pBillMon)
         {
             OracleConnection con = null;
@@ -101,7 +150,7 @@ namespace DAL
             string sql = @" SELECT NULL SLAB, ROWNUM SrNO, SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME, BPERIOD BILLMONTH, MAINDT, REFNO, TARRIFCODE, DEF_TYPE, DEF_STATUS,  " +
                          "TARIFF_CAT, NAMEADD, DCN_NO, DCN_DATE, MTR_NO, AGE, AMOUNT " +
                          "FROM VW_DEFAULTER_LIST " +
-                         "WHERE 1=1";
+                         "WHERE 1=1 ";
             //" WHERE BPERIOD=(SELECT MAX(BPERIOD) FROM VW_DEFAULTER_LIST)";
 
             if (!string.IsNullOrEmpty(pCode))
@@ -126,24 +175,20 @@ namespace DAL
                 sql += " AND TARIFF_CAT = '" + pTariff + "'";
 
             }
-            //ToDo Column missing in view
-            //if (!string.IsNullOrEmpty(pSlab))
-            //{
-            //    sql += " AND SLAB_NAME = '" + pSlab + "'";
-
-            //}
 
             if (!string.IsNullOrEmpty(pSlab))
             {
-                string slabFrom = pSlab.Substring(0, pSlab.IndexOf("--------------"));
-                string slabTo = pSlab.Substring(pSlab.LastIndexOf("--------------") + "--------------".Length);
+                //string slabFrom = pSlab.Substring(0, pSlab.IndexOf("--------------"));
+                //string slabTo = pSlab.Substring(pSlab.LastIndexOf("--------------") + "--------------".Length);
                 if (flagAgeAmnt == 'A')
                 {
-                    sql += " AND AGE between " + slabFrom + " and " + slabTo;
+                    sql += " AND AGE_SLAB = " + pSlab;
+                    //sql += " AND AGE between " + slabFrom + " and " + slabTo;
                 }
                 else
                 {
-                    sql += " AND AMOUNT between " + slabFrom + " and " + slabTo;
+                    sql += " AND AMOUNT_SLAB = " + pSlab;
+                    //sql += " AND AMOUNT between " + slabFrom + " and " + slabTo;
                 }
             }
 
@@ -710,9 +755,9 @@ namespace DAL
             }
 
             string groupBy = " SRT_ORDER2, SRT_ORDER1, SDIVCODE, SDIV_NAME, B_PERIOD, SLAB_ID, SLAB_NAME ";
-            string sql = @" SELECT ROWNUM SrNO, SRT_ORDER2, SRT_ORDER1, CODE, NAME , BILLMONTH, SLAB_NAME, CONSUMERS, AMOUNT FROM (";
+            string sql = @" SELECT ROWNUM SrNO, SRT_ORDER2, SRT_ORDER1, CODE, NAME , BILLMONTH, SLAB_NAME, SLAB_ID, CONSUMERS, AMOUNT FROM (";
             sql += @" SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME " +
-                         ", B_PERIOD BILLMONTH, SLAB_NAME, SUM(CONSUMERS) CONSUMERS, SUM(AMOUNT) AMOUNT " +
+                         ", B_PERIOD BILLMONTH, SLAB_NAME, SLAB_ID, SUM(CONSUMERS) CONSUMERS, SUM(AMOUNT) AMOUNT " +
                          "from VW_DEF_CONS_SUM_AGE_SLABS " +
             " WHERE 1=1";
             if (!string.IsNullOrEmpty(pCode))
@@ -1006,7 +1051,7 @@ namespace DAL
             }
 
             string groupBy = " SRT_ORDER2, SRT_ORDER1, SDIVCODE, SDIV_NAME, B_PERIOD, SLAB_ID, SLAB_NAME ";
-            string sql = @" SELECT ROWNUM SrNO, SRT_ORDER2, SRT_ORDER1, CODE, NAME , BILLMONTH, SLAB_NAME, CONSUMERS, AMOUNT FROM (" +
+            string sql = @" SELECT ROWNUM SrNO, SRT_ORDER2, SRT_ORDER1, CODE, NAME , BILLMONTH, SLAB_ID, SLAB_NAME, CONSUMERS, AMOUNT FROM (" +
                 " SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME , B_PERIOD BILLMONTH , SLAB_ID, SLAB_NAME,  " +
                          " Sum(CONSUMERS) CONSUMERS, Sum(AMOUNT) AMOUNT " +
                          "from VW_DEF_CONS_SUM_AMNT_SLABS " +

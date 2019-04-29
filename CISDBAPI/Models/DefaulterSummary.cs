@@ -40,7 +40,7 @@ namespace DashBoardAPI.Models
                 totAmnt += Double.Parse(tot.Amount);
                 totCons += UInt64.Parse(tot.Numbers);
             }
-            this.DfltrConsSmry.Add(new DefaulterConsSummary("Total", "Total", totCons.ToString(), totAmnt.ToString()));
+            this.DfltrConsSmry.Add(new DefaulterConsSummary("Total", "Total", totCons.ToString(), totAmnt.ToString(), "Total"));
         }
     }
 
@@ -50,14 +50,16 @@ namespace DashBoardAPI.Models
         public string Slabs { get; set; }
         public string Numbers { get; set; }
         public string Amount { get; set; }
+        public string SlabID { get; set; }
 
-        public DefaulterConsSummary(string srNo, string slab, string numbers, string amnt)
+        public DefaulterConsSummary(string srNo, string slab, string numbers, string amnt, string slabId)
         {
 
             this.SrNo = srNo;
             this.Slabs = slab;
             this.Numbers = numbers;
             this.Amount = amnt;
+            this.SlabID = slabId;
         }
         public DefaulterConsSummary(DataRow dr)
         {
@@ -65,6 +67,7 @@ namespace DashBoardAPI.Models
             this.Slabs = utility.GetColumnValue(dr, "SLAB_NAME");
             this.Numbers = utility.GetColumnValue(dr, "CONSUMERS");
             this.Amount = utility.GetColumnValue(dr, "AMOUNT");
+            this.SlabID = utility.GetColumnValue(dr, "SLAB_ID");
         }
     }
 }

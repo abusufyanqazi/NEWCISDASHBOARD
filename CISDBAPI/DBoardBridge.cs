@@ -28,7 +28,8 @@ namespace DashBoardAPI.Models
             {
                 string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
                 string cd = utility.GetColumnValue(dt.Rows[0], "CODE");
-                string name = utility.GetColumnValue(dt.Rows[0], "FEEDER_NAME");
+                //string name = utility.GetColumnValue(dt.Rows[0], "FEEDER_NAME");
+                string name = objDbuTil.GetFeederNameByCode(code, fdrCode);
                 _DefConsListFdrWise = new DefConsListFdrWise(cd, name, dt);
 
             }
