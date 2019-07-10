@@ -30,8 +30,8 @@ namespace DashBoardAPI.Models
             this.CenterName = pName;
             DataView dv = pDT.DefaultView;
             StringBuilder filterExp = new StringBuilder();
-            filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length+1).ToString());
-            dv.RowFilter = filterExp.ToString();
+            //filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length+1).ToString());
+            //dv.RowFilter = filterExp.ToString();
             foreach (DataRowView dr in dv)
             {
                 DfltrConsSmry.Add(new DefaulterBSummary(dr));

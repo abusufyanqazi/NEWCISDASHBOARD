@@ -1,8 +1,11 @@
-﻿
-//using System.Data.OracleClient;
-using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Data;
+using System.Configuration;
+using System.Web;
+using System.Collections;
+//using System.Data.OracleClient;
+using Oracle.ManagedDataAccess;
+using Oracle.ManagedDataAccess.Client;
 
 /// <summary>
 /// Summary description for DB_Utility
@@ -21,206 +24,8 @@ namespace DAL
             _constr = conStr;
         }
 
-        public DataSet GetDepWiseInfo(string code, string bmonth)
-        {
-            OracleConnection con = null;
-            OracleCommand cmd;
-            con = new OracleConnection(_constr);
-            if (con.State != ConnectionState.Open)
-            {
-                con.Open();
-            }
-            string query = "";
-            query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_GVT_COL_BILLING WHERE SDIV_CODE = '" + code + "' AND ROWNUM = 1";
-            string DeptTbl = "DeptTable";
-            DataSet records = new DataSet();
-            records.Tables.Add("CenterInfo");
-            OracleDataAdapter ad = new OracleDataAdapter();
-            cmd = new OracleCommand(query, con);
-            ad.SelectCommand = cmd;
-            try
-            {
-                ad.Fill(records, "CenterInfo");
-            }
-
-            catch (Exception ex)
-            {
-                return null;
-            }
-            query = "SELECT B_PERIOD, SDIV_CODE, SDIV_NAME, TOT_ASSESS, NO_OF_CON, OP_BAL, DEPTTYPEDESC, PAYMENT, CL_BAL, 0 AS DEPTCODE " +
-                    "FROM VW_GVT_COL_BILLING WHERE B_PERIOD LIKE '%" + bmonth + "%' AND SDIV_CODE LIKE '" + code + "%'";
-            cmd = new OracleCommand(query, con);
-            cmd.CommandType = CommandType.Text;
-
-            ad = new OracleDataAdapter();
-            ad.SelectCommand = cmd;
-            try
-            {
-                records.Tables.Add(DeptTbl);
-                ad.Fill(records, DeptTbl);
-            }
-            catch (Exception ex)
-            {
-                DataTable dtErr = new DataTable();
-                dtErr.Columns.Add("Desc");
-                DataRow drErr = dtErr.NewRow();
-                drErr["Desc"] = ex.ToString();
-                dtErr.Rows.Add(drErr);
-                records.Tables.Add(dtErr);
-                return records;
-            }
-
-            return records;
-
-        }
-        public DataSet GetCenterWiseDeptInfo(string code, string bmonth)
-        {
-            OracleConnection con = null;
-            OracleCommand cmd;
-            con = new OracleConnection(_constr);
-            if (con.State != ConnectionState.Open)
-            {
-                con.Open();
-            }
-
-            
-            string likecode = "";
-            string query = "";
-            query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_GVT_COL_BILLING WHERE SDIV_CODE = '" + code + "' AND ROWNUM = 1"; 
-            string center1 = "centersrno";
-            DataSet records = new DataSet();
-            records.Tables.Add("CenterInfo");
-            OracleDataAdapter ad = new OracleDataAdapter();
-            cmd = new OracleCommand(query, con);
-            ad.SelectCommand = cmd;
-            try
-            {
-                ad.Fill(records, "CenterInfo");
-            }
-
-            catch(Exception ex) {
-                return null;
-            }
-            ad.SelectCommand = cmd;
-
-            for (int i = 0; i <= 9; i++)
-            {
-                likecode = code + i.ToString();
-                query = "SELECT B_PERIOD, SDIV_CODE, SDIV_NAME, TOT_ASSESS, NO_OF_CON, OP_BAL, DEPTTYPEDESC, PAYMENT, CL_BAL, 0 AS DEPTCODE " +
-                    "FROM VW_GVT_COL_BILLING WHERE B_PERIOD LIKE '%" + bmonth + "%' AND SDIV_CODE LIKE '" + likecode + "%'";
-                likecode = "";
-                cmd = new OracleCommand(query, con);
-                cmd.CommandType = CommandType.Text;
-
-                ad = new OracleDataAdapter();
-                ad.SelectCommand = cmd;
-                try
-                {
-                    records.Tables.Add((center1 + i).ToString());
-                    ad.Fill(records, (center1 + i).ToString());
-                }
-                catch (Exception ex)
-                {
-                    DataTable dtErr = new DataTable();
-                    dtErr.Columns.Add("Desc");
-                    DataRow drErr = dtErr.NewRow();
-                    drErr["Desc"] = ex.ToString();
-                    dtErr.Rows.Add(drErr);
-                    records.Tables.Add(dtErr);
-                    return records;
-                }
-            }
-
-            return records;
-        }
-
-
         //VW_DEF_CONS_SUM_FDRCODE_WISE
-        public DataSet GetTariffWiseBill(string code, string bmonth)
-        {
-            OracleConnection con = null;
-            OracleCommand cmd;
-            con = new OracleConnection(_constr);
-            if (con.State != ConnectionState.Open)
-            {
-                con.Open();
-            }
-            DataSet records = new DataSet();
-            string likecode = "";
-            string query1 = "";
-            string query2 = "";
-            string center1 = "commercial";
-            string center2 = "domestic";
-            string query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_TRF_WISE_UNITS WHERE SDIV_CODE = '" + code + "' AND ROWNUM = 1";
-            records.Tables.Add("CenterInfo");
-            OracleDataAdapter ad = new OracleDataAdapter();
-            cmd = new OracleCommand(query, con);
-            ad.SelectCommand = cmd;
-            try
-            {
-                ad.Fill(records, "CenterInfo");
-            }
 
-            catch (Exception ex)
-            {
-                return null;
-            }
-            
-            for (int i = 0; i <= 9; i++)
-            {
-                likecode = code + i.ToString();
-
-                query1 = "SELECT B_PERIOD S, SDIV_CODE, SDIV_NAME, TARIFF_CATEGORY, CATEGORY_NAME, CONNECTIONS, UNITS, BILLING, PAYMENT, CLOSING, SPILLOVER, TOT_PERCENT" +
-                " FROM VW_TRF_WISE_UNITS WHERE to_char(B_PERIOD,'MON') || '-' || to_char(B_PERIOD,'YY') = " + " '" +  bmonth.ToUpper() + "'" + " AND SDIV_CODE LIKE '" + likecode + "%" + "' AND TARIFF_CATEGORY IN " +
-                "(SELECT TRFCD FROM DISCO.tbltariff where category='D')";
-
-                query2 = "SELECT B_PERIOD S, SDIV_CODE, SDIV_NAME, TARIFF_CATEGORY, CATEGORY_NAME, CONNECTIONS, UNITS, BILLING, PAYMENT, CLOSING, SPILLOVER, TOT_PERCENT" +
-                " FROM VW_TRF_WISE_UNITS WHERE to_char(B_PERIOD,'MON') || '-' || to_char(B_PERIOD,'YY') = " + " '" +  bmonth.ToUpper() + "' AND SDIV_CODE LIKE '" + likecode + "%" + "' AND TARIFF_CATEGORY IN " +
-                "(SELECT TRFCD FROM DISCO.tbltariff where category='C')";
-
-                likecode = "";
-                cmd = new OracleCommand(query1, con);
-                cmd.CommandType = CommandType.Text;
-
-                ad = new OracleDataAdapter();
-                ad.SelectCommand = cmd;
-                try
-                {
-                    records.Tables.Add((center1 + i).ToString());
-                    ad.Fill(records, (center1 + i).ToString());
-                }
-                catch (Exception ex)
-                {
-                    DataTable dtErr = new DataTable();
-                    dtErr.Columns.Add("Desc");
-                    DataRow drErr = dtErr.NewRow();
-                    drErr["Desc"] = ex.ToString();
-                    dtErr.Rows.Add(drErr);
-                    records.Tables.Add(dtErr);
-                    return records;
-                }
-                cmd = new OracleCommand(query2, con);
-                cmd.CommandType = CommandType.Text;
-                ad.SelectCommand = cmd;
-                try
-                {
-                    records.Tables.Add((center2 + i).ToString());
-                    ad.Fill(records, (center2 + i).ToString());
-                }
-                catch (Exception ex)
-                {
-                    DataTable dtErr = new DataTable();
-                    dtErr.Columns.Add("Desc");
-                    DataRow drErr = dtErr.NewRow();
-                    drErr["Desc"] = ex.ToString();
-                    dtErr.Rows.Add(drErr);
-                    records.Tables.Add(dtErr);
-                    return records;
-                }
-            }
-
-            return records;
-        }
         public DataTable GetRefWiseTentative(string code, string ason)
         {
             OracleConnection con = null;
@@ -231,8 +36,7 @@ namespace DAL
                 con.Open();
             }
 
-            string query = "SELECT ROWNUM AS SRNO, RGNCODE, RGNNAME, B_PERIOD, REF_NO, TARIFF_ACTIVE, CONSUMER_NAME, " +
-                "(ADDR_1||''||ADDR_2) AS ADDRESS, 0 AS ER0NO, 0 AS ERODATE, DFL_UNPAID_AGE AS AGE, UNPAID_AMOUNT, 0 AS DEFERREDAMOUNT, DFL_OWNING_AMNT, CL_TOT_AMNT" +
+            string query = "SELECT ROWNUM AS SRNO, RGNCODE, RGNNAME, B_PERIOD, REF_NO, TARIFF_ACTIVE, CONSUMER_NAME, (ADDR_1||''||ADDR_2) AS ADDRESS, 0 AS ER0NO, 0 AS ERODATE, DFL_UNPAID_AGE AS AGE, UNPAID_AMOUNT, 0 AS DEFERREDAMOUNT, DFL_OWNING_AMNT, CL_TOT_AMNT" +
                 " FROM VW_114_TENT_DSH WHERE B_PERIOD = (SELECT MAX(B_PERIOD) FROM VW_114_TENT_DSH) AND SDIVCODE LIKE '" + code + "%' AND DFL_ISU_DT <= '" + ason + "'";
             cmd = new OracleCommand(query, con);
             cmd.CommandType = CommandType.Text;
@@ -257,7 +61,7 @@ namespace DAL
             {
                 return records.Tables[0];
             }
-            return null;
+            return null;         
         }
         public DataTable GetRegWiseDefaulters(string code, string asOn)
         {
@@ -272,12 +76,10 @@ namespace DAL
             }
             //OracleParameter todate = new OracleParameter("@ason", OracleDbType.Varchar2);
             //todate.Value = asOnDate;
-            string query = "SELECT SDIVCODE AS CenterCode, RGNCODE, SDIVNAME as CenterName, RGNNAME,B_PERIOD , SUM(UNPAID_AMOUNT)" +
-                " AS UnpaidAmount, SUM(0) AS DefferedAmount, SUM(DFL_OWNING_AMNT) AS OwningAmount, SUM(CL_TOT_AMNT) AS ClosingAmount " +
-                "FROM VW_114_TENT_DSH WHERE B_PERIOD = (SELECT MAX(B_PERIOD) FROM VW_114_TENT_DSH) AND SDIVCODE LIKE '" + code + "%'" +
-                " AND DFL_ISU_DT <= '" + asOn + "' GROUP BY SDIVCODE, SDIVNAME, RGNNAME, B_PERIOD, RGNCODE";
+            string query = "SELECT SDIVCODE AS CenterCode, RGNCODE, SDIVNAME as CenterName, RGNNAME,B_PERIOD , SUM(UNPAID_AMOUNT) AS UnpaidAmount, SUM(0) AS DefferedAmount, SUM(DFL_OWNING_AMNT) AS OwningAmount, SUM(CL_TOT_AMNT) AS ClosingAmount " +
+                "FROM VW_114_TENT_DSH WHERE B_PERIOD = (SELECT MAX(B_PERIOD) FROM VW_114_TENT_DSH) AND SDIVCODE LIKE '" + code + "%' AND DFL_ISU_DT <= '" + asOn + "' GROUP BY SDIVCODE, SDIVNAME, RGNNAME, B_PERIOD, RGNCODE";
 
-
+            
             cmd = new OracleCommand(query, con);
             cmd.CommandType = CommandType.Text;
             DataSet records = new DataSet();
@@ -287,7 +89,7 @@ namespace DAL
             {
                 ad.Fill(records);
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 DataTable dtErr = new DataTable();
                 dtErr.Columns.Add("Desc");
@@ -333,7 +135,7 @@ namespace DAL
 
             cmd = new OracleCommand(sql, con);
             cmd.CommandType = CommandType.Text;
-
+            
             try
             {
                 feederName = cmd.ExecuteScalar().ToString();
@@ -350,7 +152,7 @@ namespace DAL
                     con.Close();
                 }
             }
-
+            
             return feederName;
         }
         public DataTable GetDefConsFdrCdWise(string pCode, DateTime pBillMon)
@@ -505,7 +307,7 @@ namespace DAL
 
             return null;
         }
-
+       
         //FDR CD wise
         public DataTable GetDefListFeederWise(string pCode, DateTime pBillMon, string fdrCD)
         {
@@ -848,7 +650,7 @@ namespace DAL
 
             return null;
         }
-
+      
         public DataTable GetDefConsSumBatch(string pCode, DateTime pBillMon, string pPvtGvt, string pRundisc, string pTrf)
         {
             OracleConnection con = null;
@@ -1236,7 +1038,7 @@ namespace DAL
                          " Sum(CONSUMERS) CONSUMERS, Sum(AMOUNT) AMOUNT " +
                          "from VW_DEF_CONS_SUM_AMNT_SLABS " +
                           " WHERE 1=1 ";
-
+            
             string sortorder = "SRT_ORDER1";
             switch (pCode.Length)
             {
@@ -1977,7 +1779,7 @@ namespace DAL
             if (!string.IsNullOrEmpty(code))
             {
                 sql += " WHERE SDIVCODE = '" + code + "'" //" AND SRT_ORDER2 " + sortorder
-                                                          ////+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'" 
+                    ////+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'" 
                        + " AND B_PERIOD=(SELECT MAX(B_PERIOD) FROM VE_EXTRA_HEAVY_BILLS WHERE SDIVCODE = '" + code + "')"
                        + " ORDER BY SRT_ORDER1";
             }
@@ -2139,7 +1941,7 @@ namespace DAL
             if (!string.IsNullOrEmpty(code))
             {
                 sql += " WHERE sdiv_code LIKE '" + code + "%' AND SRT_ORDER2 " + sortorder
-                       //+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'" 
+                    //+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'" 
                        + " AND BILLMONTH=(SELECT MAX(BILLMONTH) FROM VW_CASH_COLL_SUMMARY)"
                        + " ORDER BY SRT_ORDER1";
             }
@@ -2514,7 +2316,7 @@ namespace DAL
         }
         public DataTable getMonLosses(string code, DateTime billMon)
         {
-            string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, SDIV, SDIVNAME, to_char(b_period, 'DD-MON-YY') B_PERIOD, RCV, BIL, LOS, PCT, " +
+            string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, SDIV, SDIVNAME, to_char(b_period, 'DD-MON-YY') B_PERIOD, RCV, BIL, LOS, PCT, "+
                           " to_char(PRV_PERIOD, 'DD-MON-YY') PRV_PERIOD, PRV_RCV, PRV_BIL, PRV_LOS, PRV_PCT, VAR_INCDEC, ATC, PRV_ATC " +
                            " FROM VW_MONTHLY_LINE_LOSS ";
             OracleConnection con = null;
@@ -2919,7 +2721,7 @@ namespace DAL
         {
             string sql = @"select BILL_MNTH, NOTE_NO, ADJ_DT, UNITS, AMOUNT,PAY_AGAINTS_DET"
                          + " from vw_theft_dt_portal "
-                         //+ " where BATCH||SDIV|| CONS_NO ='" + refNo + "'";
+                //+ " where BATCH||SDIV|| CONS_NO ='" + refNo + "'";
                          + " WHERE  APPLICATION_NO = (SELECT GET_APP_BY_REF_CUR_MONTH('" + refNo + "') FROM DUAL)";
             OracleConnection con = null;
             OracleCommand cmd;
@@ -2964,18 +2766,16 @@ namespace DAL
             }
             return null;
         }
-        public DataTable getBillData(string ts, string kwh, DateTime strtPeriod, DateTime endPeriod, string trf, string ed_cd,
-            string seasonchrg, string stdclsfcd, string gstexmtcd, string fixchrg, string mtrent, string srvrent, string dssur, string uosr,
-            string p_tot_cons, string nooftv, string fatapatacd)
+        public DataTable getBillData(string ts, string kwh, DateTime strtPeriod, DateTime endPeriod, string trf)
         {
-
             string startMonth = strtPeriod.ToString("dd") + "-" + strtPeriod.ToString("MMM") + "-" +
-                                strtPeriod.ToString("yy");
+                                strtPeriod.ToString("yyyy");
             string endMonth = endPeriod.ToString("dd") + "-" + endPeriod.ToString("MMM") + "-" +
-                              endPeriod.ToString("yy");
-            string sql = "DISCO.PROC_BILL4API";
+                              endPeriod.ToString("yyyy");
+            string sql = "PROC_BILL4API";
             OracleConnection con = null;
-            con = new OracleConnection(_constr);
+            string cisConStr = System.Configuration.ConfigurationManager.ConnectionStrings["MEPCO2.6"].ToString();
+            con = new OracleConnection(cisConStr);
             DataTable dt = new DataTable();
 
             try
@@ -2992,12 +2792,9 @@ namespace DAL
                 opTS.Value = ts;
                 cmd.Parameters.Add(opTS);
 
-                OracleParameter opKWH = new OracleParameter("KWH", OracleDbType.Decimal);
-                //opKWH.Size = 200;
-                opKWH.Value = decimal.Parse(kwh);
+                OracleParameter opKWH = new OracleParameter("KWH", OracleDbType.Long);
+                opKWH.Value = Int32.Parse(kwh);
                 cmd.Parameters.Add(opKWH);
-
-
                 OracleParameter opSperiod = new OracleParameter("S_PERIOD", OracleDbType.Varchar2);
                 opSperiod.Value = startMonth.ToUpper();
                 cmd.Parameters.Add(opSperiod);
@@ -3009,84 +2806,9 @@ namespace DAL
                 OracleParameter opTRF = new OracleParameter("TRF", OracleDbType.Varchar2);
                 opTRF.Value = trf;
                 cmd.Parameters.Add(opTRF);
-
-                OracleParameter ed_Cd = new OracleParameter("ED_CD", OracleDbType.Varchar2);
-                ed_Cd.Value = ed_cd;
-                cmd.Parameters.Add(ed_Cd);
-
-                OracleParameter seasonCharge = new OracleParameter("SEASON_CHRG", OracleDbType.Decimal);
-                seasonCharge.Value = float.Parse(seasonchrg);
-                cmd.Parameters.Add(seasonCharge);
-
-                OracleParameter stdClfCd = new OracleParameter("STD_CLSF_CD", OracleDbType.Varchar2);
-                stdClfCd.Value = stdclsfcd;
-                cmd.Parameters.Add(stdClfCd);
-
-                OracleParameter gstExmtCd = new OracleParameter("GST_EXMT_CD", OracleDbType.Varchar2);
-                gstExmtCd.Value = gstexmtcd;
-                cmd.Parameters.Add(gstExmtCd);
-
-
-                OracleParameter fixCharge = new OracleParameter("FIX_CHARGE", OracleDbType.Decimal);
-                fixCharge.Value = float.Parse(fixchrg);
-                cmd.Parameters.Add(fixCharge);
-
-                OracleParameter meterRent = new OracleParameter("METER_RENT", OracleDbType.Decimal);
-                meterRent.Value = float.Parse(mtrent);
-                cmd.Parameters.Add(meterRent);
-
-                OracleParameter srvRent = new OracleParameter("SRV_RENT", OracleDbType.Decimal);
-                srvRent.Value = float.Parse(srvrent);
-                cmd.Parameters.Add(srvRent);
-
-                OracleParameter dssUr = new OracleParameter("DSSUR", OracleDbType.Decimal);
-                dssUr.Value = float.Parse(dssur);
-                cmd.Parameters.Add(dssUr);
-
-                OracleParameter uoSur = new OracleParameter("UOSUR", OracleDbType.Decimal);
-                uoSur.Value = float.Parse(uosr);
-                cmd.Parameters.Add(uoSur);
-
-                OracleParameter noOfTv = new OracleParameter("NO_OF_TV", OracleDbType.Decimal);
-                noOfTv.Value = float.Parse(nooftv);
-                cmd.Parameters.Add(noOfTv);
-
-                OracleParameter fata_pata_cd = new OracleParameter("FATA_PATA_CD", OracleDbType.Varchar2);
-                fata_pata_cd.Value = fatapatacd;
-                cmd.Parameters.Add(fata_pata_cd);
-
-                OracleParameter p_Tot_cons = new OracleParameter("P_TOT_CONS", OracleDbType.Decimal);
-                p_Tot_cons.Value = float.Parse(p_tot_cons);
-                cmd.Parameters.Add(p_Tot_cons);
-
-                OracleParameter edres = new OracleParameter("V_ED", OracleDbType.Decimal);
-                edres.Direction = ParameterDirection.Output;
-                cmd.Parameters.Add(edres);
-
-                OracleParameter energyRes = new OracleParameter("V_Energy", OracleDbType.Decimal);
-                energyRes.Direction = ParameterDirection.Output;
-                cmd.Parameters.Add(energyRes);
-
-                OracleParameter gstRes = new OracleParameter("V_GST", OracleDbType.Decimal);
-                gstRes.Direction = ParameterDirection.Output;
-                cmd.Parameters.Add(gstRes);
-
-                OracleParameter itaxRes = new OracleParameter("V_ITAX", OracleDbType.Decimal);
-                itaxRes.Direction = ParameterDirection.Output;
-                cmd.Parameters.Add(itaxRes);
-
-                OracleParameter ptvfee = new OracleParameter("V_PTVFEE", OracleDbType.Decimal);
-                ptvfee.Direction = ParameterDirection.Output;
-                cmd.Parameters.Add(ptvfee);
-
-                OracleParameter eqSur = new OracleParameter("V_EQSUR", OracleDbType.Decimal);
-                eqSur.Direction = ParameterDirection.Output;
-                cmd.Parameters.Add(eqSur);
-
-                OracleParameter njSur = new OracleParameter("V_NJSUR", OracleDbType.Decimal);
-                njSur.Direction = ParameterDirection.Output;
-                cmd.Parameters.Add(njSur);
-
+                OracleParameter opResult = new OracleParameter("RESULT", OracleDbType.RefCursor);
+                opResult.Direction = ParameterDirection.Output;
+                cmd.Parameters.Add(opResult);
 
                 cmd.CommandText = sql;
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -3094,26 +2816,7 @@ namespace DAL
 
                 OracleDataAdapter da = new OracleDataAdapter(cmd);
 
-
-                dt.Columns.Add("ENRCHRG");
-                dt.Columns.Add("GST");
-                dt.Columns.Add("ED");
-                dt.Columns.Add("ITAX");
-                dt.Columns.Add("PTVFEE");
-                dt.Columns.Add("EQSUR");
-                dt.Columns.Add("NJSUR");
-                DataRow data = dt.NewRow();
-                data["ENRCHRG"] = cmd.Parameters["V_ENERGY"].Value.ToString();
-                data["GST"] = cmd.Parameters["V_GST"].Value.ToString();
-                data["ED"] = cmd.Parameters["V_ED"].Value.ToString();
-                data["ITAX"] = cmd.Parameters["V_ITAX"].Value.ToString();
-                data["PTVFEE"] = cmd.Parameters["V_PTVFEE"].Value.ToString();
-                data["EQSUR"] = cmd.Parameters["V_EQSUR"].Value.ToString();
-                data["NJSUR"] = cmd.Parameters["V_NJSUR"].Value.ToString();
-                dt.Rows.Add(data);
-
-
-
+                da.Fill(dt);
             }
             catch (Exception ex)
             {

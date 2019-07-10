@@ -30,8 +30,9 @@ namespace DashBoardAPI.Models
             this.CenterCode = pCode;
             this.CenterName = pName;
             this.Slab = slab;
-
-            foreach (DataRow dr in pDT.Rows)
+            DataView dv = pDT.DefaultView;
+            dv.Sort = "SrNO ASC";
+            foreach (DataRowView dr in dv)
             {
                 DfltrConsSmry.Add(new DefaultConsumerRef(dr));
             }
@@ -51,7 +52,7 @@ namespace DashBoardAPI.Models
         public string Age { get; set; }
         public string Amount { get; set; }
 
-        public DefaultConsumerRef(DataRow dr)
+        public DefaultConsumerRef(DataRowView dr)
         {
             this.SrNo = utility.GetColumnValue(dr, "SrNO");
             this.RefNo = utility.GetColumnValue(dr, "REFNO");

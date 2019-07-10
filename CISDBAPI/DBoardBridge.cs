@@ -1,21 +1,185 @@
-﻿using System;
-using System.Data;
+﻿using DAL;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Security;
+using System.Data;
+using System.Globalization;
 using System.Text;
-using System.Web;
-using DashBoardAPI.Models;
-using  util;
-using DAL;
+using util;
 
 namespace DashBoardAPI.Models
 {
     public class DBoardBridge
     {
+        //updated for local use only at obaid machine
         static string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["CONSTR"].ToString();
 
+        public GvtVsAssmntDeptWise DepWiseInfo(string code, string bmonth)
+        {
+
+            DataSet resultSet = new DB_Utility(conStr).GetDepWiseInfo(code, bmonth);
+            DeptInfo temp = null;
+            List<DeptInfo> depts = new List<DeptInfo>();
+            foreach (DataRow row in resultSet.Tables[1].Rows)
+            {
+                temp = new DeptInfo(row["DEPTCODE"].ToString(), row["DEPTTYPEDESC"].ToString(), row["NO_OF_CON"].ToString(), row["OP_BAL"].ToString(),
+                    row["TOT_ASSESS"].ToString(), row["PAYMENT"].ToString(), row["CL_BAL"].ToString());
+                depts.Add(temp);
+            }
+
+            GvtVsAssmntDeptWise result = new GvtVsAssmntDeptWise(bmonth, code, resultSet.Tables[0].Rows[0]["SDIV_NAME"].ToString(), depts);
+            return result;
+
+
+        }
+        public GvtVsAssmntCenterWiseBillData CenterWiseDepInfo(string code, string bmonth)
+        {
+            DataSet resultSet = new DB_Utility(conStr).GetCenterWiseDeptInfo(code, bmonth);
+            List<CenterWiseDepts> centerWiseList = new List<CenterWiseDepts>();
+            DeptInfo temp = null;
+            for (int i = 1; i < resultSet.Tables.Count; i++)
+            {
+                List<DeptInfo> depts = new List<DeptInfo>();
+                if(resultSet.Tables[i].Rows.Count != 0)
+                {
+                    foreach(DataRow row in resultSet.Tables[i].Rows)
+                    {
+                        temp = new DeptInfo(row["DEPTCODE"].ToString(), row["DEPTTYPEDESC"].ToString(), row["NO_OF_CON"].ToString(), row["OP_BAL"].ToString(),
+                            row["TOT_ASSESS"].ToString(), row["PAYMENT"].ToString(), row["CL_BAL"].ToString());
+                        depts.Add(temp);
+                    }
+
+                    CenterWiseDepts temp2 = new CenterWiseDepts(resultSet.Tables[i].Rows[0]["SDIV_CODE"].ToString().Substring(0, code.Length + 1),
+                        resultSet.Tables[i].Rows[0]["SDIV_NAME"].ToString(), depts);
+                    centerWiseList.Add(temp2);
+                }
+
+            }
+            GvtVsAssmntCenterWiseBillData result = new GvtVsAssmntCenterWiseBillData(bmonth, code, resultSet.Tables[0].Rows[0]["SDIV_NAME"].ToString(), centerWiseList);
+            return result;
+        }
+
+        public TariffWiseBilling TrfWiseBillData(string code, string bmonth)
+        {
+            DB_Utility dbUtilObj = new DB_Utility(conStr);
+            DataSet records = dbUtilObj.GetTariffWiseBill(code, bmonth);
+
+            List<RgnWiseTrf> rgnlist = new List<RgnWiseTrf>();
+            TariffWise temp = null;
+            TariffWise temp2 = null;
+            for (int i = 1; i < records.Tables.Count; i += 2)
+            {
+                List<TariffWise> domestic = new List<TariffWise>();
+                List<TariffWise> commercial = new List<TariffWise>();
+                if (records.Tables[i].Rows.Count != 0 || records.Tables[i + 1].Rows.Count != 0)
+                {
+                    if (records.Tables[i].Rows.Count != 0)
+                    {
+                        foreach (DataRow row in records.Tables[i].Rows)
+                        {
+                            temp = new TariffWise(row["TARIFF_CATEGORY"].ToString(), row["CONNECTIONS"].ToString(),
+                            row["UNITS"].ToString(), row["BILLING"].ToString(), row["PAYMENT"].ToString(),
+                            row["CLOSING"].ToString(), row["SPILLOVER"].ToString(), row["TOT_PERCENT"].ToString());
+                            domestic.Add(temp);
+                        }
+
+                    }
+                    if (records.Tables[i + 1].Rows.Count != 0)
+                    {
+                        foreach (DataRow row in records.Tables[i + 1].Rows)
+                        {
+                            temp2 = new TariffWise(row["TARIFF_CATEGORY"].ToString(), row["CONNECTIONS"].ToString(),
+                            row["UNITS"].ToString(), row["BILLING"].ToString(), row["PAYMENT"].ToString(),
+                            row["CLOSING"].ToString(), row["SPILLOVER"].ToString(), row["TOT_PERCENT"].ToString());
+                            commercial.Add(temp2);
+                        }
+                    }
+
+                    TrfWiseTypes tObj = new TrfWiseTypes(domestic, commercial);
+                    if (records.Tables[i].Rows.Count != 0)
+                    {
+                        RgnWiseTrf tObj2 = new RgnWiseTrf(records.Tables[i].Rows[0]["SDIV_CODE"].ToString().Substring(0, code.Length+1), 
+                            records.Tables[i].Rows[0]["SDIV_NAME"].ToString(), tObj);
+                        rgnlist.Add(tObj2);
+                    }
+                    else if (records.Tables[i + 1].Rows.Count != 0)
+                    {
+                        RgnWiseTrf tObj2 = new RgnWiseTrf(records.Tables[i + 1].Rows[0]["SDIV_CODE"].ToString().Substring(0, code.Length+1), 
+                            records.Tables[i + 1].Rows[0]["SDIV_NAME"].ToString(), tObj);
+                        rgnlist.Add(tObj2);
+                    }
+
+                }
+            }
+            TariffWiseBilling result = new TariffWiseBilling(bmonth, code, "", rgnlist);
+            return result;
+
+        }
+
+
+        public TentativeRefWiseList ListTentativeRefWise(string code, string ason)
+        {
+            DB_Utility dbUtilObj = new DB_Utility(conStr);
+            DataTable records = dbUtilObj.GetRefWiseTentative(code, ason);
+            List<RefWiseTentative> defaulters = new List<RefWiseTentative>();
+            if (records != null)
+            {
+                foreach (DataRow row in records.Rows)
+                {
+                    RefWiseTentative temp = new RefWiseTentative(row["SRNO"].ToString(), row["REF_NO"].ToString(), row["TARIFF_ACTIVE"].ToString(),
+                        System.Text.RegularExpressions.Regex.Replace(row["CONSUMER_NAME"].ToString(), @"\s+", " "),
+                        System.Text.RegularExpressions.Regex.Replace(row["ADDRESS"].ToString(), @"\s+", " "), row["ER0NO"].ToString(),
+                        row["ERODATE"].ToString(), row["AGE"].ToString(), row["UNPAID_AMOUNT"].ToString(), row["DEFERREDAMOUNT"].ToString(),
+                        row["DFL_OWNING_AMNT"].ToString(), row["CL_TOT_AMNT"].ToString());
+                    defaulters.Add(temp);
+                }
+
+                //string monend = records.Rows[0]["B_PERIOD"].ToString().Split(' ')[0];
+                //int a = monend.Split('-')[1].Length;
+                //if (a == 2)
+                //{
+                //    monend = monend.Split('-')[0] + "-" + monend.Split('-')[2];
+                //}
+                //else
+                //{
+                //    monend = "0" + monend.Split('-')[0] + "-" + monend.Split('-')[2];
+                //}
+                
+                DateTime monend = DateTime.Parse(records.Rows[0]["B_PERIOD"].ToString());
+                TentativeRefWiseList result = new TentativeRefWiseList(monend.ToString("MMM-yyyy", CultureInfo.InvariantCulture), monend.AddMonths(1).AddDays(-1).ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture), records.Rows[0]["RGNCODE"].ToString(),
+                    records.Rows[0]["RGNNAME"].ToString(), defaulters);
+                return result;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public MonthlyDflRegWise DefListRegWise(string code, string asOn)
+        {
+            DB_Utility dbUtilObj = new DB_Utility(conStr);
+            DataTable records = dbUtilObj.GetRegWiseDefaulters(code, asOn);
+            List<RegWiseDfl> defaulters = new List<RegWiseDfl>();
+            if (records != null)
+            {
+                foreach (DataRow row in records.Rows)
+                {
+                    RegWiseDfl temp = new RegWiseDfl(row["CENTERCODE"].ToString(), row["CENTERNAME"].ToString(), row["UNPAIDAMOUNT"].ToString(), row["DEFFEREDAMOUNT"].ToString(),
+                    row["OWNINGAMOUNT"].ToString(), row["CLOSINGAMOUNT"].ToString());
+                    defaulters.Add(temp);
+                }
+
+                DateTime monend = DateTime.Parse(records.Rows[0]["B_PERIOD"].ToString());
+
+                MonthlyDflRegWise regWiseDfl = new MonthlyDflRegWise(monend.ToString("MMM-yyyy", CultureInfo.InvariantCulture), monend.AddMonths(1).AddDays(-1).ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture),
+                    records.Rows[0]["RGNCODE"].ToString(),
+                    records.Rows[0]["RGNNAME"].ToString(), defaulters);
+                return regWiseDfl;
+            }
+            else
+            {
+                return null;
+            }
+        }
         public DefConsListFdrWise GetDefConsListFdrCdWise(string code, string fdrCode)
         {
             DefConsListFdrWise _DefConsListFdrWise = new DefConsListFdrWise();
@@ -50,13 +214,13 @@ namespace DashBoardAPI.Models
                 string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
                 string cd = utility.GetColumnValue(dt.Rows[0], "CODE");
                 string name = utility.GetColumnValue(dt.Rows[0], "NAME");
-                _DefaultSumFdrWise = new DefaultSumFdrWise(billMonth, cd,name, dt);
+                _DefaultSumFdrWise = new DefaultSumFdrWise(billMonth, cd, name, dt);
 
             }
 
             return _DefaultSumFdrWise;
         }
-     public DefaultListRefWise GetDefListRefWise(string code, string type, string status, string tariff, string pSlab, char flagAgAMnt)
+        public DefaultListRefWise GetDefListRefWise(string code, string type, string status, string tariff, string pSlab, char flagAgAMnt)
         {
             DefaultListRefWise _DefaulterSummary = new DefaultListRefWise();
             utility util = new utility();
@@ -66,11 +230,11 @@ namespace DashBoardAPI.Models
             DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), type, status, tariff, pSlab, flagAgAMnt);
             if (dt != null && dt.Rows.Count > 0)
             {
-                    string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
-                    string cd = utility.GetColumnValue(dt.Rows[0], "CODE");
-                    string name = utility.GetColumnValue(dt.Rows[0], "NAME");
-                    string slab = utility.GetColumnValue(dt.Rows[0], "SLAB");
-                    _DefaulterSummary = new DefaultListRefWise(billMonth, cd, name, slab, dt);
+                string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
+                string cd = utility.GetColumnValue(dt.Rows[0], "CODE");
+                string name = utility.GetColumnValue(dt.Rows[0], "NAME");
+                string slab = utility.GetColumnValue(dt.Rows[0], "SLAB");
+                _DefaulterSummary = new DefaultListRefWise(billMonth, cd, name, pSlab, dt);
 
             }
 
@@ -83,7 +247,7 @@ namespace DashBoardAPI.Models
             DB_Utility objDbuTil = new DB_Utility(conStr);
             StringBuilder filterExp = new StringBuilder();
 
-            DataTable dt = objDbuTil.GetDefConsSumBatch(pCode, DateTime.Now.AddMonths(-1),pAge,pPvtGvt,pRundisc,pTrf);
+            DataTable dt = objDbuTil.GetDefConsSumBatch(pCode, DateTime.Now.AddMonths(-1), pAge, pPvtGvt, pRundisc, pTrf);
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dvHead = dt.DefaultView;
@@ -118,8 +282,8 @@ namespace DashBoardAPI.Models
             {
                 DataView dv = dt.DefaultView;
                 StringBuilder filterExp = new StringBuilder();
-                    filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
-                    dv.RowFilter = filterExp.ToString();
+                filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
+                dv.RowFilter = filterExp.ToString();
                 dv.Sort = "CODE ASC";
                 DataTable dt1 = dv.ToTable();
 
@@ -129,7 +293,7 @@ namespace DashBoardAPI.Models
                     string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
                     string name = utility.GetColumnValue(dt1.Rows[0], "NAME");
 
-                    _DefectMeterSumMonWise = new DefectMeterSumMonWise(billMonth, cd, name,dt);
+                    _DefectMeterSumMonWise = new DefectMeterSumMonWise(billMonth, cd, name, dt);
                 }
             }
 
@@ -175,13 +339,13 @@ namespace DashBoardAPI.Models
             DB_Utility objDbuTil = new DB_Utility(conStr);
             StringBuilder filterExp = new StringBuilder();
 
-            DataTable dt = objDbuTil.GetDefConsSumBatch(pCode,DateTime.Now.AddMonths(-1), pPvtGvt, pRundisc,pTrf);
+            DataTable dt = objDbuTil.GetDefConsSumBatch(pCode, DateTime.Now.AddMonths(-1), pPvtGvt, pRundisc, pTrf);
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dvHead = dt.DefaultView;
                 filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length).ToString());
                 dvHead.RowFilter = filterExp.ToString();
-                if(dvHead!=null && dvHead.ToTable().Rows.Count>0)
+                if (dvHead != null && dvHead.ToTable().Rows.Count > 0)
                 {
                     string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dvHead.ToTable().Rows[0], "BILLMONTH"));
                     string cd = utility.GetColumnValue(dvHead.ToTable().Rows[0], "CODE");
@@ -201,7 +365,7 @@ namespace DashBoardAPI.Models
             DB_Utility objDbuTil = new DB_Utility(conStr);
             StringBuilder filterExp = new StringBuilder();
 
-            DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), rs, age, batch,pgvt,rundc,trf,srt);
+            DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), rs, age, batch, pgvt, rundc, trf, srt);
             if (dt != null && dt.Rows.Count > 0)
             {
                 string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dt.Rows[0], "BILLMONTH"));
@@ -221,12 +385,12 @@ namespace DashBoardAPI.Models
             DB_Utility objDbuTil = new DB_Utility(conStr);
             StringBuilder filterExp = new StringBuilder();
 
-            DataTable dt = objDbuTil.GetDefConsListCenterWise(code, DateTime.Now.AddMonths(-1),rs,age,batch,pgvt,rundc,trf,srt);
+            DataTable dt = objDbuTil.GetDefConsListCenterWise(code, DateTime.Now.AddMonths(-1), rs, age, batch, pgvt, rundc, trf, srt);
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dvHead = dt.DefaultView;
-                filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
-                dvHead.RowFilter = filterExp.ToString();
+                //filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
+                //dvHead.RowFilter = filterExp.ToString();
                 if (dvHead != null && dvHead.ToTable().Rows.Count > 0)
                 {
                     string billMonth = utility.GetFormatedDateYYYY(utility.GetColumnValue(dvHead.ToTable().Rows[0], "BILLMONTH"));
@@ -250,7 +414,7 @@ namespace DashBoardAPI.Models
                 DataView dv = dt.DefaultView;
                 dv.Sort = "CODE DESC";
                 DataTable dt1 = dv.ToTable();
-                
+
                 if (dt1 != null)
                 {
                     string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
@@ -273,7 +437,7 @@ namespace DashBoardAPI.Models
                 DataView dv = dt.DefaultView;
                 dv.Sort = "CODE DESC";
                 DataTable dt1 = dv.ToTable();
-               
+
                 if (dt1 != null)
                 {
                     string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
@@ -291,18 +455,21 @@ namespace DashBoardAPI.Models
             DefaultSumCentreWise _DefaulterSummary = new DefaultSumCentreWise();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
-            DataTable dt = objDbuTil.GetDefSummAgeSlabCentreWise(pCode, DateTime.Now.AddMonths(-1), pType , pStatus, pTariff);
+            DataTable dt = objDbuTil.GetDefSummAgeSlabCentreWise(pCode, DateTime.Now.AddMonths(-1), pType, pStatus, pTariff);
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dv = dt.DefaultView;
+                StringBuilder filterExp = new StringBuilder();
+                filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length).ToString());
+                dv.RowFilter = filterExp.ToString();
+                dv.Sort = "SRT_ORDER1";
                 DataTable dt1 = dv.ToTable();
-
                 if (dt1 != null)
                 {
                     string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
                     string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
                     string name = utility.GetColumnValue(dt1.Rows[0], "NAME");
-                    _DefaulterSummary = new DefaultSumCentreWise(billMonth, pCode, name, dt1);
+                    _DefaulterSummary = new DefaultSumCentreWise(billMonth, pCode, name, dt);
                 }
             }
 
@@ -318,6 +485,10 @@ namespace DashBoardAPI.Models
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dv = dt.DefaultView;
+                StringBuilder filterExp = new StringBuilder();
+                filterExp.AppendFormat("LEN(CODE) = {0}", (pCode.Length).ToString());
+                dv.RowFilter = filterExp.ToString();
+                dv.Sort = "SRT_ORDER1";
                 DataTable dt1 = dv.ToTable();
 
                 if (dt1 != null)
@@ -325,13 +496,13 @@ namespace DashBoardAPI.Models
                     string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
                     string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
                     string name = utility.GetColumnValue(dt1.Rows[0], "NAME");
-                    _DefaulterSummary = new DefaultSumCentreWise(billMonth, pCode, name, dt1);
+                    _DefaulterSummary = new DefaultSumCentreWise(billMonth, pCode, name, dt);
                 }
             }
 
             return _DefaulterSummary;
         }
-    
+
         public DefaulterSummary GetDefaulterSummaryAmntBySproc(string code, string type, string status, string tariff)
         {
             DefaulterSummary _DefaulterSummary = new DefaulterSummary();
@@ -355,18 +526,18 @@ namespace DashBoardAPI.Models
 
             return _DefaulterSummary;
         }
-        public CreditAdjustments GetCRAdjustments(string code,string BatchFrom, char unitFlag)
+        public CreditAdjustments GetCRAdjustments(string code, string BatchFrom, char unitFlag)
         {
             CreditAdjustments _CreditAdjustments = new CreditAdjustments();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
-            DataTable dt = objDbuTil.GetCRAdjustments(code, DateTime.Now.AddMonths(-1),BatchFrom, unitFlag);
+            DataTable dt = objDbuTil.GetCRAdjustments(code, DateTime.Now.AddMonths(-1), BatchFrom, unitFlag);
             if (dt != null)
             {
                 DataView dv = dt.DefaultView;
                 dv.Sort = "CODE DESC";
                 DataTable dt1 = dv.ToTable();
-                
+
                 if (dt1 != null)
                 {
                     string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILLMONTH");
@@ -378,13 +549,13 @@ namespace DashBoardAPI.Models
 
             return _CreditAdjustments;
         }
-        
+
         public CreditAdjustmentsCentreWise GetCRAdjCentreWise(string pCode, string pBatchFrom, char pUnitFlag)
         {
             CreditAdjustmentsCentreWise _CreditAdjustments = new CreditAdjustmentsCentreWise();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
-            DataTable dt = objDbuTil.GetCRAdjustmentsCentreWise(pCode, DateTime.Now.AddMonths(-1), pBatchFrom,  pUnitFlag);
+            DataTable dt = objDbuTil.GetCRAdjustmentsCentreWise(pCode, DateTime.Now.AddMonths(-1), pBatchFrom, pUnitFlag);
             if (dt != null)
             {
                 //DataView dv = dt.DefaultView;
@@ -410,7 +581,7 @@ namespace DashBoardAPI.Models
                 //DataView dv = dt.DefaultView;
                 //dv.Sort = "CODE DESC";
                 //DataTable dt1 = dv.ToTable();
-                
+
                 if (dt != null)
                 {
                     string billMonth = utility.GetColumnValue(dt.Rows[0], "BILLMONTH");
@@ -422,10 +593,10 @@ namespace DashBoardAPI.Models
 
             return _DefectMeterSumTrfWise;
         }
-    
-               public DefectiveDetails GetDefectiveDetails(string code, string age, string phase, string trf)
+
+        public DefectiveDetails GetDefectiveDetails(string code, string age, string phase, string trf)
         {
-           
+
             DefectiveDetails _DefectiveDetails = new DefectiveDetails();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
@@ -449,34 +620,34 @@ namespace DashBoardAPI.Models
             return _DefectiveDetails;
         }
 
-               public DefectiveDetailsR GetDefectiveMeterRegionWise(string code, string age, string trf)
-               {
-                   DefectiveDetailsR _DefectiveRegionWise = new DefectiveDetailsR();
-                   utility util = new utility();
-                   DB_Utility objDbuTil = new DB_Utility(conStr);
-                   DataTable dt = objDbuTil.GetDefectiveMeterRegionWise(code, DateTime.Now.AddMonths(-1), age, trf);
-                   
-                   if (dt != null && dt.Rows.Count > 0)
-                   {
-                       StringBuilder filterExp = new StringBuilder();
-                       DataView dv = dt.DefaultView;
-                       filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
-                       dv.RowFilter = filterExp.ToString();
-                       dv.Sort = "CODE ASC";
-                       DataTable dt1 = dv.ToTable();
+        public DefectiveDetailsR GetDefectiveMeterRegionWise(string code, string age, string trf)
+        {
+            DefectiveDetailsR _DefectiveRegionWise = new DefectiveDetailsR();
+            utility util = new utility();
+            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DataTable dt = objDbuTil.GetDefectiveMeterRegionWise(code, DateTime.Now.AddMonths(-1), age, trf);
 
-                       if (dt1 != null)
-                       {
-                           string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILL_MONTH");
-                           string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
-                           string name = utility.GetColumnValue(dt1.Rows[0], "NAME");
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                StringBuilder filterExp = new StringBuilder();
+                DataView dv = dt.DefaultView;
+                filterExp.AppendFormat("LEN(CODE) = {0}", (code.Length).ToString());
+                dv.RowFilter = filterExp.ToString();
+                dv.Sort = "CODE ASC";
+                DataTable dt1 = dv.ToTable();
 
-                           _DefectiveRegionWise = new DefectiveDetailsR(billMonth, cd, name, dt);
-                       }
-                   }
+                if (dt1 != null)
+                {
+                    string billMonth = utility.GetColumnValue(dt1.Rows[0], "BILL_MONTH");
+                    string cd = utility.GetColumnValue(dt1.Rows[0], "CODE");
+                    string name = utility.GetColumnValue(dt1.Rows[0], "NAME");
 
-                   return _DefectiveRegionWise;
-               }
+                    _DefectiveRegionWise = new DefectiveDetailsR(billMonth, cd, name, dt);
+                }
+            }
+
+            return _DefectiveRegionWise;
+        }
         public ExtraHeaveyBillRegion GetExtraHeaveyBillRegion(string code)
         {
             ExtraHeaveyBillRegion _ExtraHeaveyBillRegion = new ExtraHeaveyBillRegion();
@@ -488,7 +659,7 @@ namespace DashBoardAPI.Models
                 DataView dv = dt.DefaultView;
                 dv.Sort = "CODE DESC";
                 DataTable dt1 = dv.ToTable();
-                
+
                 if (dt1 != null)
                 {
                     string billMonth = utility.GetColumnValue(dt1.Rows[0], "BillingMonth");
@@ -506,7 +677,7 @@ namespace DashBoardAPI.Models
             DB_Utility objDbuTil = new DB_Utility(conStr);
             DataTable dt = objDbuTil.GetExtraHeaveyBill(code, DateTime.Now.AddMonths(-1));
             StringBuilder filterExp = new StringBuilder();
-            
+
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dv = dt.DefaultView;
@@ -528,7 +699,7 @@ namespace DashBoardAPI.Models
             DB_Utility objDbuTil = new DB_Utility(conStr);
             DataTable dt = objDbuTil.GetCashCollSummary(code, DateTime.Now.AddMonths(-1));
             StringBuilder filterExp = new StringBuilder();
-            
+
             if (dt != null)
             {
                 DataView dv = dt.DefaultView;
@@ -555,14 +726,14 @@ namespace DashBoardAPI.Models
             return coll;
         }
 
-        public List<FeederLosses> GetFeederLosses(string token)
+        public List<FeederLosses> GetFeederLosses()
         {
             List<FeederLosses> coll = new List<FeederLosses>();
             utility util = new utility();
             DB_Utility objDbuTil = new DB_Utility(conStr);
             DataTable dt = objDbuTil.GetFeederLosses(DateTime.Now.AddMonths(-1));
             StringBuilder filterExp = new StringBuilder();
-           
+
             if (dt != null)
             {
                 foreach (DataRow dr in dt.Rows)
@@ -574,7 +745,9 @@ namespace DashBoardAPI.Models
             return coll;
         }
 
-        public Bill GetBill(string kwh, string trf)
+        public Bill GetBill(string kwh, string trf, string ed_cd, string seasonchrg, string stdclsfcd,
+            string gstexmtcd, string fixchrg, string mtrent, string srvrent, string dssur, string uosr, string nooftv,
+            string fatapatacd, string p_tot_cons)
         {
             DataTable dt;
             utility util = new utility();
@@ -583,12 +756,12 @@ namespace DashBoardAPI.Models
 
             DateTime firstDayOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             DateTime lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
-            dt = objDbuTil.getBillData("1", kwh, firstDayOfMonth, lastDayOfMonth, trf);
+            dt = objDbuTil.getBillData("1", kwh, firstDayOfMonth, lastDayOfMonth, trf, ed_cd, seasonchrg, stdclsfcd, gstexmtcd, fixchrg, mtrent, srvrent, dssur, uosr, p_tot_cons, nooftv, fatapatacd);
 
             if (dt != null && dt.Rows.Count > 0)
             {
-                return new Bill(dt.Rows[0]["ENRCHRG"].ToString(), dt.Rows[0]["TR_SUR"].ToString(), "0", "0", "0", "0",
-                    "0", "0", "0", dt.Rows[0]["BILLSLABS"].ToString());
+                return new Bill(dt.Rows[0]["ENRCHRG"].ToString(), "0", "0", dt.Rows[0]["ED"].ToString(), dt.Rows[0]["GST"].ToString(), dt.Rows[0]["PTVFEE"].ToString(),
+                    dt.Rows[0]["NJSUR"].ToString(), "0", "0", "0", dt.Rows[0]["ITAX"].ToString(), dt.Rows[0]["EQSUR"].ToString());
             }
 
             return null;
@@ -877,7 +1050,7 @@ namespace DashBoardAPI.Models
         public static string GetBillingStatus(string token)
         {
             string ret = "Error";
-           
+
             try
             {
                 DB_Utility objDBUTil = new DB_Utility(conStr);
