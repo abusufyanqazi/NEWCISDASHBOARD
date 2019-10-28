@@ -11,12 +11,12 @@ namespace DashBoardAPI.Models
     public class DBoardBridge
     {
         //updated for local use only at obaid machine
-        static string conStr = System.Configuration.ConfigurationManager.ConnectionStrings["CONSTR"].ToString();
+        
 
         public GvtVsAssmntDeptWise DepWiseInfo(string code, string bmonth)
         {
 
-            DataSet resultSet = new DB_Utility(conStr).GetDepWiseInfo(code, bmonth);
+            DataSet resultSet = new DB_Utility().GetDepWiseInfo(code, bmonth);
             DeptInfo temp = null;
             List<DeptInfo> depts = new List<DeptInfo>();
             foreach (DataRow row in resultSet.Tables[1].Rows)
@@ -33,7 +33,7 @@ namespace DashBoardAPI.Models
         }
         public GvtVsAssmntCenterWiseBillData CenterWiseDepInfo(string code, string bmonth)
         {
-            DataSet resultSet = new DB_Utility(conStr).GetCenterWiseDeptInfo(code, bmonth);
+            DataSet resultSet = new DB_Utility().GetCenterWiseDeptInfo(code, bmonth);
             List<CenterWiseDepts> centerWiseList = new List<CenterWiseDepts>();
             DeptInfo temp = null;
             for (int i = 1; i < resultSet.Tables.Count; i++)
@@ -60,7 +60,7 @@ namespace DashBoardAPI.Models
 
         public TariffWiseBilling TrfWiseBillData(string code, string bmonth)
         {
-            DB_Utility dbUtilObj = new DB_Utility(conStr);
+            DB_Utility dbUtilObj = new DB_Utility();
             DataSet records = dbUtilObj.GetTariffWiseBill(code, bmonth);
 
             List<RgnWiseTrf> rgnlist = new List<RgnWiseTrf>();
@@ -118,7 +118,7 @@ namespace DashBoardAPI.Models
 
         public TentativeRefWiseList ListTentativeRefWise(string code, string ason)
         {
-            DB_Utility dbUtilObj = new DB_Utility(conStr);
+            DB_Utility dbUtilObj = new DB_Utility();
             DataTable records = dbUtilObj.GetRefWiseTentative(code, ason);
             List<RefWiseTentative> defaulters = new List<RefWiseTentative>();
             if (records != null)
@@ -156,7 +156,7 @@ namespace DashBoardAPI.Models
         }
         public MonthlyDflRegWise DefListRegWise(string code, string asOn)
         {
-            DB_Utility dbUtilObj = new DB_Utility(conStr);
+            DB_Utility dbUtilObj = new DB_Utility();
             DataTable records = dbUtilObj.GetRegWiseDefaulters(code, asOn);
             List<RegWiseDfl> defaulters = new List<RegWiseDfl>();
             if (records != null)
@@ -184,7 +184,7 @@ namespace DashBoardAPI.Models
         {
             DefConsListFdrWise _DefConsListFdrWise = new DefConsListFdrWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             DataTable dt = objDbuTil.GetDefListFeederWise(code, DateTime.Now.AddMonths(-1), fdrCode);
@@ -205,7 +205,7 @@ namespace DashBoardAPI.Models
         {
             DefaultSumFdrWise _DefaultSumFdrWise = new DefaultSumFdrWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             DataTable dt = objDbuTil.GetDefConsFdrCdWise(code, DateTime.Now.AddMonths(-1));
@@ -224,7 +224,7 @@ namespace DashBoardAPI.Models
         {
             DefaultListRefWise _DefaulterSummary = new DefaultListRefWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), type, status, tariff, pSlab, flagAgAMnt);
@@ -244,7 +244,7 @@ namespace DashBoardAPI.Models
         {
             DefaulterBatchSummary _DefaulterSummary = new DefaulterBatchSummary();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             DataTable dt = objDbuTil.GetDefConsSumBatch(pCode, DateTime.Now.AddMonths(-1), pAge, pPvtGvt, pRundisc, pTrf);
@@ -276,7 +276,7 @@ namespace DashBoardAPI.Models
         {
             DefectMeterSumMonWise _DefectMeterSumMonWise = new DefectMeterSumMonWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefectMeterSumMonWise(code, DateTime.Now.AddMonths(-1));
             if (dt != null)
             {
@@ -311,7 +311,7 @@ namespace DashBoardAPI.Models
         {
             DefaulterBatchSummary _DefaulterSummary = new DefaulterBatchSummary();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             DataTable dt = objDbuTil.GetDefConsSumBatch(pCode, DateTime.Now.AddMonths(-1));
@@ -336,7 +336,7 @@ namespace DashBoardAPI.Models
         {
             DefaulterBatchSummary _DefaulterSummary = new DefaulterBatchSummary();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             DataTable dt = objDbuTil.GetDefConsSumBatch(pCode, DateTime.Now.AddMonths(-1), pPvtGvt, pRundisc, pTrf);
@@ -362,7 +362,7 @@ namespace DashBoardAPI.Models
         {
             DefaultListRefWise _DefaulterSummary = new DefaultListRefWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             DataTable dt = objDbuTil.GetDefListRefWise(code, DateTime.Now.AddMonths(-1), rs, age, batch, pgvt, rundc, trf, srt);
@@ -382,7 +382,7 @@ namespace DashBoardAPI.Models
         {
             DefaulterBatchSummary _DefaulterSummary = new DefaulterBatchSummary();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             DataTable dt = objDbuTil.GetDefConsListCenterWise(code, DateTime.Now.AddMonths(-1), rs, age, batch, pgvt, rundc, trf, srt);
@@ -407,7 +407,7 @@ namespace DashBoardAPI.Models
         {
             DefaulterSummary _DefaulterSummary = new DefaulterSummary();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefSummAgeSlab(code, DateTime.Now.AddMonths(-1), type, status, tariff);
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -430,7 +430,7 @@ namespace DashBoardAPI.Models
         {
             DefaulterSummary _DefaulterSummary = new DefaulterSummary();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefSummAmntSlab(code, DateTime.Now.AddMonths(-1), type, status, tariff);
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -454,7 +454,7 @@ namespace DashBoardAPI.Models
         {
             DefaultSumCentreWise _DefaulterSummary = new DefaultSumCentreWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefSummAgeSlabCentreWise(pCode, DateTime.Now.AddMonths(-1), pType, pStatus, pTariff);
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -480,7 +480,7 @@ namespace DashBoardAPI.Models
         {
             DefaultSumCentreWise _DefaulterSummary = new DefaultSumCentreWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefSummAmntSlabCentreWise(pCode, DateTime.Now.AddMonths(-1), pType, pStatus, pTariff);
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -507,7 +507,7 @@ namespace DashBoardAPI.Models
         {
             DefaulterSummary _DefaulterSummary = new DefaulterSummary();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefConsSumAmntSlabsBySproc(code, type, status, tariff, code);
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -530,7 +530,7 @@ namespace DashBoardAPI.Models
         {
             CreditAdjustments _CreditAdjustments = new CreditAdjustments();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetCRAdjustments(code, DateTime.Now.AddMonths(-1), BatchFrom, unitFlag);
             if (dt != null)
             {
@@ -554,7 +554,7 @@ namespace DashBoardAPI.Models
         {
             CreditAdjustmentsCentreWise _CreditAdjustments = new CreditAdjustmentsCentreWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetCRAdjustmentsCentreWise(pCode, DateTime.Now.AddMonths(-1), pBatchFrom, pUnitFlag);
             if (dt != null)
             {
@@ -574,7 +574,7 @@ namespace DashBoardAPI.Models
         {
             DefectMeterSumTrfWise _DefectMeterSumTrfWise = new DefectMeterSumTrfWise();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefectMeterSumTrfWise(pCode, DateTime.Now.AddMonths(-1));
             if (dt != null)
             {
@@ -599,7 +599,7 @@ namespace DashBoardAPI.Models
 
             DefectiveDetails _DefectiveDetails = new DefectiveDetails();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefectiveMeterDetails(code, DateTime.Now.AddMonths(-1), age, phase, trf);
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -624,7 +624,7 @@ namespace DashBoardAPI.Models
         {
             DefectiveDetailsR _DefectiveRegionWise = new DefectiveDetailsR();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetDefectiveMeterRegionWise(code, DateTime.Now.AddMonths(-1), age, trf);
 
             if (dt != null && dt.Rows.Count > 0)
@@ -652,7 +652,7 @@ namespace DashBoardAPI.Models
         {
             ExtraHeaveyBillRegion _ExtraHeaveyBillRegion = new ExtraHeaveyBillRegion();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetExtraHeaveyBillRegion(code, DateTime.Now.AddMonths(-1));
             if (dt != null)
             {
@@ -674,7 +674,7 @@ namespace DashBoardAPI.Models
         {
             ExtraHeaveyBill _ExtraHeaveyBill = new ExtraHeaveyBill();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetExtraHeaveyBill(code, DateTime.Now.AddMonths(-1));
             StringBuilder filterExp = new StringBuilder();
 
@@ -696,7 +696,7 @@ namespace DashBoardAPI.Models
         {
             List<CashCollection> coll = new List<CashCollection>();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.GetCashCollSummary(code, DateTime.Now.AddMonths(-1));
             StringBuilder filterExp = new StringBuilder();
 
@@ -726,12 +726,12 @@ namespace DashBoardAPI.Models
             return coll;
         }
 
-        public List<FeederLosses> GetFeederLosses()
+        public List<FeederLosses> GetFeederLosses(string code)
         {
             List<FeederLosses> coll = new List<FeederLosses>();
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
-            DataTable dt = objDbuTil.GetFeederLosses(DateTime.Now.AddMonths(-1));
+            DB_Utility objDbuTil = new DB_Utility();
+            DataTable dt = objDbuTil.GetFeederLosses(code,DateTime.Now.AddMonths(-1));
             StringBuilder filterExp = new StringBuilder();
 
             if (dt != null)
@@ -751,7 +751,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dt;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             Bill bObj;
 
             DateTime firstDayOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
@@ -772,7 +772,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dt;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             List<CollectCompAssMnt> collCompAssMnt = new List<CollectCompAssMnt>();
             StringBuilder filterExp = new StringBuilder();
 
@@ -804,7 +804,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dt;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             List<CollectMonBilling> collVsBilling = new List<CollectMonBilling>();
             StringBuilder filterExp = new StringBuilder();
 
@@ -836,7 +836,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dt;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             List<ReceivSpillArrear> receivSpillArrears = new List<ReceivSpillArrear>();
             StringBuilder filterExp = new StringBuilder();
 
@@ -868,7 +868,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dt;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             List<MonLosses> monLosseses = new List<MonLosses>();
             StringBuilder filterExp = new StringBuilder();
 
@@ -900,7 +900,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dt;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             List<MonLosses> prgsLosseses = new List<MonLosses>();
             StringBuilder filterExp = new StringBuilder();
 
@@ -932,7 +932,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dtD, dtB;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             if (!string.IsNullOrEmpty(code))
@@ -967,7 +967,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dt;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
 
             if (!string.IsNullOrEmpty(code))
@@ -994,7 +994,7 @@ namespace DashBoardAPI.Models
         {
             DataTable dt;
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             StringBuilder filterExp = new StringBuilder();
             List<TheftMND> theftData = new List<TheftMND>();
 
@@ -1016,7 +1016,7 @@ namespace DashBoardAPI.Models
         public List<AssmntBatchWiseObject> GetAssesmentBatchWise(string code)
         {
             utility util = new utility();
-            DB_Utility objDbuTil = new DB_Utility(conStr);
+            DB_Utility objDbuTil = new DB_Utility();
             DataTable dt = objDbuTil.getAssesmentBatchWise(code, DateTime.Now.AddMonths(-1));
             StringBuilder filterExp = new StringBuilder();
             List<AssmntBatchWiseObject> coll = new List<AssmntBatchWiseObject>();
@@ -1047,14 +1047,14 @@ namespace DashBoardAPI.Models
             return coll;
         }
 
-        public static string GetBillingStatus(string token)
+        public static string GetBillingStatus(string pCode)
         {
             string ret = "Error";
 
             try
             {
-                DB_Utility objDBUTil = new DB_Utility(conStr);
-                DataTable dt = objDBUTil.getBillingStatus();
+                DB_Utility objDBUTil = new DB_Utility();
+                DataTable dt = objDBUTil.getBillingStatus(pCode);
                 utility util = new utility();
 
                 ret = util.DataTableToJSONWithStringBuilder(dt);

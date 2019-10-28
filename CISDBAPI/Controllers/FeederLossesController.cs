@@ -10,9 +10,9 @@ namespace DashBoardAPI.Controllers
 {
     public class FeederLossesController : ApiController
     {
-        public List<FeederLosses> Get()
+        public List<FeederLosses> Get(string code = "15")
         {
-            return new DBoardBridge().GetFeederLosses();
+            return new DBoardBridge().GetFeederLosses(code);
         }
     }
 }

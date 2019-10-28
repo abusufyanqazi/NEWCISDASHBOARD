@@ -12,26 +12,30 @@ namespace DAL
 {
     public class DB_Utility
     {
-        private string _constr;
-        public DB_Utility(string conStr)
+        public string GetConnStr(string pCode)
         {
-            //
-            // TODO: Add constructor logic here
-            //
-            _constr = conStr;
+            string conStrName=pCode;
+            if(pCode.Length>1)
+                conStrName= pCode.Substring(0,2);
+
+            return System.Configuration.ConfigurationManager.ConnectionStrings[conStrName].ToString();
+        }
+        
+        public DB_Utility()
+        {
         }
 
-        public DataSet GetDepWiseInfo(string code, string bmonth)
+        public DataSet GetDepWiseInfo(string pCode, string bmonth)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
             }
             string query = "";
-            query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_GVT_COL_BILLING WHERE SDIV_CODE = '" + code + "' AND ROWNUM = 1";
+            query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_GVT_COL_BILLING WHERE SDIV_CODE = '" + pCode + "' AND ROWNUM = 1";
             string DeptTbl = "DeptTable";
             DataSet records = new DataSet();
             records.Tables.Add("CenterInfo");
@@ -48,7 +52,7 @@ namespace DAL
                 return null;
             }
             query = "SELECT B_PERIOD, SDIV_CODE, SDIV_NAME, TOT_ASSESS, NO_OF_CON, OP_BAL, DEPTTYPEDESC, PAYMENT, CL_BAL, 0 AS DEPTCODE " +
-                    "FROM VW_GVT_COL_BILLING WHERE B_PERIOD LIKE '%" + bmonth + "%' AND SDIV_CODE LIKE '" + code + "%'";
+                    "FROM VW_GVT_COL_BILLING WHERE B_PERIOD LIKE '%" + bmonth + "%' AND SDIV_CODE LIKE '" + pCode + "%'";
             cmd = new OracleCommand(query, con);
             cmd.CommandType = CommandType.Text;
 
@@ -73,11 +77,11 @@ namespace DAL
             return records;
 
         }
-        public DataSet GetCenterWiseDeptInfo(string code, string bmonth)
+        public DataSet GetCenterWiseDeptInfo(string pCode, string bmonth)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
@@ -86,7 +90,7 @@ namespace DAL
             
             string likecode = "";
             string query = "";
-            query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_GVT_COL_BILLING WHERE SDIV_CODE = '" + code + "' AND ROWNUM = 1"; 
+            query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_GVT_COL_BILLING WHERE SDIV_CODE = '" + pCode + "' AND ROWNUM = 1"; 
             string center1 = "centersrno";
             DataSet records = new DataSet();
             records.Tables.Add("CenterInfo");
@@ -105,7 +109,7 @@ namespace DAL
 
             for (int i = 0; i <= 9; i++)
             {
-                likecode = code + i.ToString();
+                likecode = pCode + i.ToString();
                 query = "SELECT B_PERIOD, SDIV_CODE, SDIV_NAME, TOT_ASSESS, NO_OF_CON, OP_BAL, DEPTTYPEDESC, PAYMENT, CL_BAL, 0 AS DEPTCODE " +
                     "FROM VW_GVT_COL_BILLING WHERE B_PERIOD LIKE '%" + bmonth + "%' AND SDIV_CODE LIKE '" + likecode + "%'";
                 likecode = "";
@@ -136,11 +140,11 @@ namespace DAL
 
 
         //VW_DEF_CONS_SUM_FDRCODE_WISE
-        public DataSet GetTariffWiseBill(string code, string bmonth)
+        public DataSet GetTariffWiseBill(string pCode, string bmonth)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
@@ -151,7 +155,7 @@ namespace DAL
             string query2 = "";
             string center1 = "commercial";
             string center2 = "domestic";
-            string query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_TRF_WISE_UNITS WHERE SDIV_CODE = '" + code + "' AND ROWNUM = 1";
+            string query = "SELECT SDIV_NAME, SDIV_CODE FROM VW_TRF_WISE_UNITS WHERE SDIV_CODE = '" + pCode + "' AND ROWNUM = 1";
             records.Tables.Add("CenterInfo");
             OracleDataAdapter ad = new OracleDataAdapter();
             cmd = new OracleCommand(query, con);
@@ -168,7 +172,7 @@ namespace DAL
             
             for (int i = 0; i <= 9; i++)
             {
-                likecode = code + i.ToString();
+                likecode = pCode + i.ToString();
 
                 query1 = "SELECT B_PERIOD S, SDIV_CODE, SDIV_NAME, TARIFF_CATEGORY, CATEGORY_NAME, CONNECTIONS, UNITS, BILLING, PAYMENT, CLOSING, SPILLOVER, TOT_PERCENT" +
                 " FROM VW_TRF_WISE_UNITS WHERE to_char(B_PERIOD,'MON') || '-' || to_char(B_PERIOD,'YY') = " + " '" +  bmonth.ToUpper() + "'" + " AND SDIV_CODE LIKE '" + likecode + "%" + "' AND TARIFF_CATEGORY IN " +
@@ -221,11 +225,11 @@ namespace DAL
 
             return records;
         }
-        public DataTable GetRefWiseTentative(string code, string ason)
+        public DataTable GetRefWiseTentative(string pCode, string ason)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
@@ -233,7 +237,7 @@ namespace DAL
 
             string query = "SELECT ROWNUM AS SRNO, RGNCODE, RGNNAME, B_PERIOD, REF_NO, TARIFF_ACTIVE, CONSUMER_NAME, " +
                 "(ADDR_1||''||ADDR_2) AS ADDRESS, 0 AS ER0NO, 0 AS ERODATE, DFL_UNPAID_AGE AS AGE, UNPAID_AMOUNT, 0 AS DEFERREDAMOUNT, DFL_OWNING_AMNT, CL_TOT_AMNT" +
-                " FROM VW_114_TENT_DSH WHERE B_PERIOD = (SELECT MAX(B_PERIOD) FROM VW_114_TENT_DSH) AND SDIVCODE LIKE '" + code + "%' AND DFL_ISU_DT <= '" + ason + "'";
+                " FROM VW_114_TENT_DSH WHERE B_PERIOD = (SELECT MAX(B_PERIOD) FROM VW_114_TENT_DSH) AND SDIVCODE LIKE '" + pCode + "%' AND DFL_ISU_DT <= '" + ason + "'";
             cmd = new OracleCommand(query, con);
             cmd.CommandType = CommandType.Text;
             DataSet records = new DataSet();
@@ -259,13 +263,13 @@ namespace DAL
             }
             return null;
         }
-        public DataTable GetRegWiseDefaulters(string code, string asOn)
+        public DataTable GetRegWiseDefaulters(string pCode, string asOn)
         {
             string feederName = string.Empty;
             OracleConnection con = null;
             //DateTime asOnDate = Convert.ToDateTime(asOn);
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
@@ -274,7 +278,7 @@ namespace DAL
             //todate.Value = asOnDate;
             string query = "SELECT SDIVCODE AS CenterCode, RGNCODE, SDIVNAME as CenterName, RGNNAME,B_PERIOD , SUM(UNPAID_AMOUNT)" +
                 " AS UnpaidAmount, SUM(0) AS DefferedAmount, SUM(DFL_OWNING_AMNT) AS OwningAmount, SUM(CL_TOT_AMNT) AS ClosingAmount " +
-                "FROM VW_114_TENT_DSH WHERE B_PERIOD = (SELECT MAX(B_PERIOD) FROM VW_114_TENT_DSH) AND SDIVCODE LIKE '" + code + "%'" +
+                "FROM VW_114_TENT_DSH WHERE B_PERIOD = (SELECT MAX(B_PERIOD) FROM VW_114_TENT_DSH) AND SDIVCODE LIKE '" + pCode + "%'" +
                 " AND DFL_ISU_DT <= '" + asOn + "' GROUP BY SDIVCODE, SDIVNAME, RGNNAME, B_PERIOD, RGNCODE";
 
 
@@ -308,7 +312,7 @@ namespace DAL
             string feederName = string.Empty;
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -321,13 +325,13 @@ namespace DAL
 
             if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " AND SDIVCODE = '" + pCode + "'";
             }
 
             if (!string.IsNullOrEmpty(pFdrCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " AND FDRCODE = '" + pFdrCode + "'";
             }
 
@@ -357,7 +361,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -371,7 +375,7 @@ namespace DAL
 
             if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " AND SDIVCODE like '" + pCode + "%'";
             }
 
@@ -418,7 +422,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -433,7 +437,7 @@ namespace DAL
 
             if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " AND SDIVCODE like '" + pCode + "%'";
             }
 
@@ -511,7 +515,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -526,7 +530,7 @@ namespace DAL
 
             if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " AND SDIVCODE = '" + pCode + "'";
             }
 
@@ -574,7 +578,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             string sortorder = "";
             string fromRs = pRs;
             string toRs = pRs;
@@ -616,7 +620,7 @@ namespace DAL
 
             if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " AND SDIVCODE like '" + pCode + "%'";
             }
 
@@ -661,7 +665,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             string sortorder = "";
             string fromRs = pRs;
             string toRs = pRs;
@@ -772,7 +776,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             string sortorder = string.Empty;
             string filter = string.Empty;
 
@@ -853,7 +857,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             string sortorder = string.Empty;
             string filter = string.Empty;
 
@@ -939,7 +943,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             string sortorder = string.Empty;
             string filter = string.Empty;
 
@@ -1029,7 +1033,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1044,7 +1048,7 @@ namespace DAL
             " WHERE 1=1";
             if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " AND SDIVCODE = '" + pCode + "'";
             }
 
@@ -1115,7 +1119,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1224,7 +1228,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1325,7 +1329,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1341,7 +1345,7 @@ namespace DAL
 
             if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " AND SDIVCODE = '" + pCode + "'";
             }
 
@@ -1412,7 +1416,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             string fromBatch = pBatchFrom;
             string toBatch = pBatchFrom;
 
@@ -1429,7 +1433,7 @@ namespace DAL
 
             if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
                 sql += " WHERE SDIVCODE = '" + pCode + "'";
             }
             if (pBatchFrom.IndexOf("-") > 0)
@@ -1497,7 +1501,7 @@ namespace DAL
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
             string fromBatch = pBatchFrom;
             string toBatch = pBatchFrom;
 
@@ -1611,11 +1615,11 @@ namespace DAL
         /// <param name="age"></param>
         /// <param name="trf"></param>
         /// <returns></returns>
-        public DataTable GetDefectiveMeterRegionWise(string code, DateTime billMon, string age, string trf)
+        public DataTable GetDefectiveMeterRegionWise(string pCode, DateTime billMon, string age, string trf)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1626,7 +1630,7 @@ namespace DAL
             string toAge = age;
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -1666,10 +1670,10 @@ namespace DAL
                 "1 TotDefCons " +
                          "from VW_DEFECTIVE_METERS_PROG ";
 
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
-                //sql += " AND BILL_MONTH = (SELECT MAX(BILL_MONTH) FROM VW_DEFECTIVE_METERS_PROG WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder + ")";
+                sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
+                //sql += " AND BILL_MONTH = (SELECT MAX(BILL_MONTH) FROM VW_DEFECTIVE_METERS_PROG WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder + ")";
             }
 
             if (!string.IsNullOrEmpty(age))
@@ -1719,11 +1723,11 @@ namespace DAL
             return null;
         }
 
-        public DataTable GetDefectiveMeterDetails(string code, DateTime billMon, string age, string phase, string trf)
+        public DataTable GetDefectiveMeterDetails(string pCode, DateTime billMon, string age, string phase, string trf)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1742,11 +1746,11 @@ namespace DAL
             string sql = @"select ROWNUM SRNO, SRT_ORDER2, SRT_ORDER1, SDIVCODE CODE, SDIV_NAME NAME, METER_TYPE PHASE, TARIFF_CAT CATEGORY, CKEY REFNO, NAME_ADDRESS, TRF_CD, SAN_LOAD, CAT, DEFECT_AGE, STATUS, BILL_MONTH " +
                          "from VW_DEFECTIVE_METERS_PROG ";
 
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                //sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder;
-                sql += " WHERE SDIVCODE = '" + code + "'";
-                //sql += " AND BILL_MONTH = (SELECT MAX(BILL_MONTH) FROM VW_DEFECTIVE_METERS_PROG WHERE SDIVCODE = '" + code + "')";
+                //sql += " WHERE SDIVpCode LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder;
+                sql += " WHERE SDIVCODE = '" + pCode + "'";
+                //sql += " AND BILL_MONTH = (SELECT MAX(BILL_MONTH) FROM VW_DEFECTIVE_METERS_PROG WHERE SDIVCODE = '" + pCode + "')";
             }
 
             if (!string.IsNullOrEmpty(age))
@@ -1799,11 +1803,11 @@ namespace DAL
             return null;
         }
 
-        public DataTable GetDefectMeterSumMonWise(string code, DateTime billMon)
+        public DataTable GetDefectMeterSumMonWise(string pCode, DateTime billMon)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1812,7 +1816,7 @@ namespace DAL
 
             string sortorder = "SRT_ORDER1";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -1839,9 +1843,9 @@ namespace DAL
             string sql = @"SELECT ROWNUM SRNO, SRT_ORDER2, SRT_ORDER1, BILLMONTH, SDIVCODE CODE, SDIVNAME NAME, ONE_MONTH, TWO_TO_3_MONTH, FOUR_TO_6_MONTH, MORE_THEN_6_MONTH " +
                          "FROM VW_DEFECTIVE_METER_SUM ";
 
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " WHERE SDIVCODE LIKE '" + code + "%' AND SRT_ORDER2 " + sortorder
+                sql += " WHERE SDIVCODE LIKE '" + pCode + "%' AND SRT_ORDER2 " + sortorder
                        + " ORDER BY SRT_ORDER1";
             }
             cmd = new OracleCommand(sql, con);
@@ -1878,11 +1882,11 @@ namespace DAL
             return null;
         }
 
-        public DataTable GetDefectMeterSumTrfWise(string code, DateTime billMon)
+        public DataTable GetDefectMeterSumTrfWise(string pCode, DateTime billMon)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1891,7 +1895,7 @@ namespace DAL
 
             string sortorder = "SRT_ORDER1";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -1918,9 +1922,9 @@ namespace DAL
             string sql = @"SELECT ROWNUM SRNO, SRT_ORDER2, SRT_ORDER1, BILLMONTH, SDIVCODE CODE, SDIVNAME NAME, DOMESTIC, COMMERCIAL, INDUSTRIAL, AGRICULTURE, OTHERS, TOTAL " +
                          "FROM VW_DEFECTIVE_METER_TRFWISE ";
 
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " WHERE SDIVCODE LIKE  '" + code + "%' AND SRT_ORDER2 " + sortorder
+                sql += " WHERE SDIVCODE LIKE  '" + pCode + "%' AND SRT_ORDER2 " + sortorder
                        + " ORDER BY SRT_ORDER1";
             }
             cmd = new OracleCommand(sql, con);
@@ -1957,11 +1961,11 @@ namespace DAL
             return null;
         }
 
-        public DataTable GetExtraHeaveyBill(string code, DateTime billMon)
+        public DataTable GetExtraHeaveyBill(string pCode, DateTime billMon)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -1974,11 +1978,11 @@ namespace DAL
 
             string sql = @"SELECT B_PERIOD BillingMonth, rownum SrNo, BMONTH, SRT_ORDER2,SRT_ORDER1,SDIVCODE CODE, SDIV_NAME NAME, REFNO, TRF, SLOAD, UNITS,AMOUNT "
                             + " FROM VE_EXTRA_HEAVY_BILLS ";
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " WHERE SDIVCODE = '" + code + "'" //" AND SRT_ORDER2 " + sortorder
+                sql += " WHERE SDIVCODE = '" + pCode + "'" //" AND SRT_ORDER2 " + sortorder
                                                           ////+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'" 
-                       + " AND B_PERIOD=(SELECT MAX(B_PERIOD) FROM VE_EXTRA_HEAVY_BILLS WHERE SDIVCODE = '" + code + "')"
+                       + " AND B_PERIOD=(SELECT MAX(B_PERIOD) FROM VE_EXTRA_HEAVY_BILLS WHERE SDIVCODE = '" + pCode + "')"
                        + " ORDER BY SRT_ORDER1";
             }
             cmd = new OracleCommand(sql, con);
@@ -2015,11 +2019,11 @@ namespace DAL
             return null;
         }
 
-        public DataTable GetExtraHeaveyBillRegion(string code, DateTime billMon)
+        public DataTable GetExtraHeaveyBillRegion(string pCode, DateTime billMon)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -2028,7 +2032,7 @@ namespace DAL
 
             string sortorder = "SRT_ORDER1";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2054,10 +2058,10 @@ namespace DAL
             }
             string sql = @"SELECT B_PERIOD BillingMonth, SDIVCODE CODE, SDIV_NAME NAME, sum(UNITS) UNITS, sum(AMOUNT) AMOUNT"
                             + " FROM VE_EXTRA_HEAVY_BILLS ";
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " WHERE SDIVCODE LIKE '" + code + "%'  AND SRT_ORDER2 " + sortorder
-                    + " AND B_PERIOD=(SELECT MAX(B_PERIOD) FROM VE_EXTRA_HEAVY_BILLS WHERE SDIVCODE like '" + code + "%'  AND SRT_ORDER2 " + sortorder + ")"
+                sql += " WHERE SDIVCODE LIKE '" + pCode + "%'  AND SRT_ORDER2 " + sortorder
+                    + " AND B_PERIOD=(SELECT MAX(B_PERIOD) FROM VE_EXTRA_HEAVY_BILLS WHERE SDIVCODE like '" + pCode + "%'  AND SRT_ORDER2 " + sortorder + ")"
                     ////+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'"
                     + " GROUP BY B_PERIOD , SDIVCODE , SDIV_NAME"
                        + " ORDER BY SDIVCODE";
@@ -2095,11 +2099,11 @@ namespace DAL
 
             return null;
         }
-        public DataTable GetCashCollSummary(string code, DateTime billMon)
+        public DataTable GetCashCollSummary(string pCode, DateTime billMon)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -2108,7 +2112,7 @@ namespace DAL
 
             string sortorder = "SRT_ORDER1";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2136,9 +2140,9 @@ namespace DAL
 
             string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, BILLMONTH, MAINDATE, MAINDATEC, sdiv_code CODE, sdiv_name NAME, DAILY_STUBS, ONLINE_STUBS, NORMAL_CASH_COLLECTED, ONLINE_CASH_COLLECTED, NORMAL_CASH_POSTED, ONLINE_CASH_POSTED, TOTAL_CASH_POSTED, RCO_FEE, ADV_CASH, UNIDENTIFIED_CASH, P_DISC_PAYMENT, GOVT_PAYMENT, TUBEWELL_PAYMENT
                                     FROM VW_CASH_COLL_SUMMARY";
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " WHERE sdiv_code LIKE '" + code + "%' AND SRT_ORDER2 " + sortorder
+                sql += " WHERE sdiv_code LIKE '" + pCode + "%' AND SRT_ORDER2 " + sortorder
                        //+ " AND BILLMONTH='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'" 
                        + " AND BILLMONTH=(SELECT MAX(BILLMONTH) FROM VW_CASH_COLL_SUMMARY)"
                        + " ORDER BY SRT_ORDER1";
@@ -2176,11 +2180,11 @@ namespace DAL
 
             return null;
         }
-        public DataTable GetFeederLosses(DateTime billMon)
+        public DataTable GetFeederLosses(string pCode, DateTime billMon)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             if (con.State != ConnectionState.Open)
             {
@@ -2227,11 +2231,11 @@ namespace DAL
             }
             return null;
         }
-        public DataTable getBillingStatus()
+        public DataTable getBillingStatus(string pCode)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);//
+            con = new OracleConnection(GetConnStr(pCode));
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
@@ -2270,14 +2274,14 @@ namespace DAL
             }
             return null;
         }
-        public DataTable GetCollVsCompAssmnt(string code)
+        public DataTable GetCollVsCompAssmnt(string pCode)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);//
+            con = new OracleConnection(GetConnStr(pCode));//
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2311,9 +2315,9 @@ namespace DAL
                 @"SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE, SDIVNAME, PVT_COMP_ASSES, GVT_COMP_ASSES, COMP_ASSES, PVT_COLL, GVT_COLL, TOT_COLL, to_char(B_PERIOD, 'DD-MON-YY') B_PERIOD, CC_CODE, PVT_PERCENT, GVT_PERCENT, TOT_PERCENT
                                       FROM  VW_COLL_VS_COMP_ASS
                                       WHERE 1=1 "; //B_PERIOD=(SELECT MAX(B_PERIOD) FROM VW_COLL_VS_COMP_ASS)
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " AND SDIVCODE LIKE '" + code + "%' AND SRT_ORDER2 " + sortorder;
+                sql += " AND SDIVCODE LIKE '" + pCode + "%' AND SRT_ORDER2 " + sortorder;
 
             }
             sql += " ORDER BY SRT_ORDER1";
@@ -2350,14 +2354,14 @@ namespace DAL
             return null;
         }
         //COLLECTION VS BILLING 
-        public DataTable GetCollVsBilling(string code)
+        public DataTable GetCollVsBilling(string pCode)
         {
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);//
+            con = new OracleConnection(GetConnStr(pCode));//
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2391,9 +2395,9 @@ namespace DAL
                 @"SELECT SRT_ORDER2, SRT_ORDER1, SDIVCODE, SDIVNAME, PVT_ASSESS, GVT_ASSESS, TOT_ASSESS, PVT_COLL, GVT_COLL, TOT_COLL, B_PERIOD, CC_CODE, PVT_PERCENT, GVT_PERCENT, TOT_PERCENT
                                       FROM VW_COLL_VS_BILL
                                        WHERE B_PERIOD=(SELECT MAX(B_PERIOD) FROM VW_COLL_VS_BILL)";
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " AND SDIVCODE LIKE '" + code + "%' AND SRT_ORDER2 " + sortorder;
+                sql += " AND SDIVCODE LIKE '" + pCode + "%' AND SRT_ORDER2 " + sortorder;
             }
 
             sql += " ORDER BY SRT_ORDER1";
@@ -2430,18 +2434,18 @@ namespace DAL
             }
             return null;
         }
-        public DataTable getReceiveables(string code, DateTime billMon)
+        public DataTable getReceiveables(string pCode, DateTime billMon)
         {
             string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, sdiv_code CODE, sdiv_name NAME, PVT_REC, GVT_REC, TOT_REC, PVT_SPILL, 
                                       GVT_SPILL, TOT_SPILL, PVT_ARREAR, GVT_ARREAR, TOT_ARREAR, CC_CODE, B_PERIOD
                                       FROM VW_RECIEVABLES";
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2471,9 +2475,9 @@ namespace DAL
                 con.Open();
             }
             sql += " WHERE SRT_ORDER2 " + sortorder;
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " AND sdiv_code LIKE '" + code + "%'";
+                sql += " AND sdiv_code LIKE '" + pCode + "%'";
             }
 
             //sql += " AND B_PERIOD='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'";
@@ -2512,18 +2516,18 @@ namespace DAL
             }
             return null;
         }
-        public DataTable getMonLosses(string code, DateTime billMon)
+        public DataTable getMonLosses(string pCode, DateTime billMon)
         {
             string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, SDIV, SDIVNAME, to_char(b_period, 'DD-MON-YY') B_PERIOD, RCV, BIL, LOS, PCT, " +
                           " to_char(PRV_PERIOD, 'DD-MON-YY') PRV_PERIOD, PRV_RCV, PRV_BIL, PRV_LOS, PRV_PCT, VAR_INCDEC, ATC, PRV_ATC " +
                            " FROM VW_MONTHLY_LINE_LOSS ";
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2553,9 +2557,9 @@ namespace DAL
                 con.Open();
             }
             sql += " WHERE SRT_ORDER2 " + sortorder;
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " AND SDIV LIKE '" + code + "%'";
+                sql += " AND SDIV LIKE '" + pCode + "%'";
             }
             sql += " AND B_PERIOD=(SELECT MAX(B_PERIOD) FROM VW_MONTHLY_LINE_LOSS)";
             //sql += " AND B_PERIOD='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'";
@@ -2592,17 +2596,17 @@ namespace DAL
             }
             return null;
         }
-        public DataTable getPrgsLosses(string code, DateTime billMon)
+        public DataTable getPrgsLosses(string pCode, DateTime billMon)
         {
             string sql = @"SELECT 0 ATC , SRT_ORDER2, SRT_ORDER1, SDIV, SDIVNAME, B_PERIOD, RCV, BIL, LOS, PCT, PRV_PERIOD, PRV_RCV, PRV_BIL, PRV_LOS, PRV_PCT, VAR_INCDEC
                             FROM VW_PROG_LINE_LOSSES";
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2632,9 +2636,9 @@ namespace DAL
                 con.Open();
             }
             sql += " WHERE SRT_ORDER2 " + sortorder;
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " AND SDIV LIKE '" + code + "%'";
+                sql += " AND SDIV LIKE '" + pCode + "%'";
             }
 
             //sql += " AND B_PERIOD='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'";
@@ -2671,18 +2675,18 @@ namespace DAL
             }
             return null;
         }
-        public DataTable getBillingStatsBatchWise(string code, DateTime billMon)
+        public DataTable getBillingStatsBatchWise(string pCode, DateTime billMon)
         {
             string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, MONTH, BATCH, SDIV_CODE CODE, SDIV_NAME NAME, TNOCONSUMERS, NOUNBILLEDCASES, NOSTSREADING, NODISCASES, NORECCASES, NOMCOCASES, NODEFMETERS, LOCKCASES, NONEWCONN, CREDBALCONSM, NOHEAVYBCASES, CREDBALAMT "
                          + " from VW_BILLING_STATS_BATCHWISE "
                          + " where MONTH = (select max(MONTH) from VW_BILLING_STATS_BATCHWISE)";
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2712,9 +2716,9 @@ namespace DAL
                 con.Open();
             }
             sql += " AND SRT_ORDER2 " + sortorder;
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " AND SDIV_CODE LIKE '" + code + "%'";
+                sql += " AND SDIV_CODE LIKE '" + pCode + "%'";
             }
 
             //sql += " AND B_PERIOD='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'";
@@ -2752,7 +2756,7 @@ namespace DAL
             return null;
         }
 
-        public DataTable getAssesmentBatchWise(string code, DateTime billMon)
+        public DataTable getAssesmentBatchWise(string pCode, DateTime billMon)
         {
             string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, MONTH, BATCH, SDIV_CODE, SDIV_NAME, NOBILLSISSUED, OPB, CURASSESS, GOVTASSESS, NET, UNITBILLED, RURALUNITBILLED, URBANUNITBILLED, NOADJUSTM, UNITADJ, AMTADJ, NODETADJ, DETADJUNITS, DETADJAMT,"
                          + " ASSESS_DOM, ASSESS_COM, ASSESS_IND, ASSESS_AGRI"
@@ -2760,11 +2764,11 @@ namespace DAL
                          + " where MONTH = (select max(MONTH) from VW_ASSESMENT_BATCHWISE)";
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2794,9 +2798,9 @@ namespace DAL
                 con.Open();
             }
             sql += " AND SRT_ORDER2 " + sortorder;
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " AND SDIV_CODE LIKE '" + code + "%'";
+                sql += " AND SDIV_CODE LIKE '" + pCode + "%'";
             }
 
             //sql += " AND B_PERIOD='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'";
@@ -2834,18 +2838,18 @@ namespace DAL
             return null;
         }
 
-        public DataTable getBillingStatsDaily(string code, DateTime billMon)
+        public DataTable getBillingStatsDaily(string pCode, DateTime billMon)
         {
             string sql = @"SELECT SRT_ORDER2, SRT_ORDER1, MONTH, SDIV_CODE CODE, SDIV_NAME NAME, TNOCONSUMERS, NOUNBILLEDCASES, NOSTSREADING, NODISCASES, NORECCASES, NOMCOCASES, NODEFMETERS, LOCKCASES, NONEWCONN, CREDBALCONSM, NOHEAVYBCASES, CREDBALAMT "
                          + " from VW_BILLING_STATS_DAILY "
                          + " where MONTH = (select max(MONTH) from VW_BILLING_STATS_DAILY)";
             OracleConnection con = null;
             OracleCommand cmd;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr(pCode));
 
             string sortorder = "";
 
-            switch (code.Length)
+            switch (pCode.Length)
             {
                 case 2:
                     {
@@ -2875,9 +2879,9 @@ namespace DAL
                 con.Open();
             }
             sql += " AND SRT_ORDER2 " + sortorder;
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrEmpty(pCode))
             {
-                sql += " AND SDIV_CODE LIKE '" + code + "%'";
+                sql += " AND SDIV_CODE LIKE '" + pCode + "%'";
             }
 
             //sql += " AND B_PERIOD='01-" + billMon.ToString("MMM") + "-" + billMon.ToString("yyyy") + "'";
@@ -2923,7 +2927,7 @@ namespace DAL
                          + " WHERE  APPLICATION_NO = (SELECT GET_APP_BY_REF_CUR_MONTH('" + refNo + "') FROM DUAL)";
             OracleConnection con = null;
             OracleCommand cmd;
-            string mndConStr = System.Configuration.ConfigurationManager.ConnectionStrings["MND_CONSTR"].ToString();
+            string mndConStr = System.Configuration.ConfigurationManager.ConnectionStrings["MNDGetConnStr(pCode)"].ToString();
             con = new OracleConnection(mndConStr);
 
 
@@ -2975,7 +2979,7 @@ namespace DAL
                               endPeriod.ToString("yy");
             string sql = "DISCO.PROC_BILL4API";
             OracleConnection con = null;
-            con = new OracleConnection(_constr);
+            con = new OracleConnection(GetConnStr("15"));
             DataTable dt = new DataTable();
 
             try
@@ -3139,7 +3143,7 @@ namespace DAL
         public DataTable GetDefConsSumAmntSlabsBySproc(string pCode, string pDefType, string pDefStatus, string pTariffCat, string pSortOrder)
         {
             DataTable dt = new DataTable();
-            using (OracleConnection cn = new OracleConnection(_constr))
+            using (OracleConnection cn = new OracleConnection(GetConnStr(pCode)))
             {
                 try
                 {
